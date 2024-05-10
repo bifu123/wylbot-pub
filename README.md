@@ -1,6 +1,6 @@
 # wylbot 元龙机器人微信版
 ## 简介
-wylot是一个以微信聊天界面作为语言模型与用户交互端的RAG应用。延续了YLBot的功能，并优化了很多地方。
+wylot是一个以微信聊天界面作为语言模型与用户交互端的RAG应用。延续了QQ版YLBot的功能，并优化了很多地方。
 ## 宗旨和理念
 - 让Ai参与网络聊天社交，让人与AI、AI可以互动
 - 作为真人网上社交的助手，具有辅助作用
@@ -8,7 +8,8 @@ wylot是一个以微信聊天界面作为语言模型与用户交互端的RAG应
 ## 免责申明
 本应用旨在研究语言模型应用，它的核习来自wxbot。仅供学习参考，请勿用于违法犯罪活动，一切资源均来自网络，不提供任何破解服务。如需生产使用，请申请官方QQ机器人。
 ## 怎样使用
-### [安装vs_BuildTools]https://aka.ms/vs/17/release/vs_BuildTools.exe
+### 登陆微信
+详见：https://github.com/jwping/wxbot
 ### 安装环境
 - windows可以使用conda环境安装部署，linux不建议用
 ```bash
@@ -19,7 +20,7 @@ conda activate wylbot-pub
 pip install requirements.txt
 ```
 ### 修改配置文件config.py
-请根据文件中提示，结合你的实际情况修改，其中涉及了对接ollama和go-cqhttp的部分，如果不会，先补上这部分知识，可以参看我在b站上的视频，也可以加QQ群：222302526 
+请根据文件中提示，结合你的实际情况修改，其中涉及了对接ollama的部分，如果不会，先补上这部分知识，可以参看我在b站上的视频，也可以加QQ群：222302526 
 
 ### 启动程序
 ```bash
