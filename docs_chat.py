@@ -22,6 +22,8 @@ import asyncio
 print(f"接收到的参数：{sys.argv}")
 
 
+# time.sleep(10000)
+
 embedding_data_path = sys.argv[1]
 question = sys.argv[2]
 chat_type = str(sys.argv[3])
@@ -68,7 +70,7 @@ try:
     if user_state == "聊天":
         shutil.rmtree(embedding_data_path)
 except Exception as e:
-    response_message = f"错误：{e}😊"
+    response_message = f"错误：{e}"
     shutil.rmtree(embedding_data_path)
 
 

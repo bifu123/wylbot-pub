@@ -193,7 +193,7 @@ try:
     query = f"{loader}\n{question}"
     response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
 except Exception as e:
-    response_message = f"错误：{e}"
+    response_message = f"错误：{e}😊"
 
 
 # 打印答案，发送消息

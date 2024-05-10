@@ -74,7 +74,7 @@ def is_upload_file(bot_id, BytesExtra):
         file_path = match.group().decode()
         filename = os.path.basename(file_path)
         username = getpass.getuser() # 获取当前用户名
-        full_path = rf'C:\Users\{username}\Documents\WeChat Files\{file_path}' # 构建文件路径
+        full_path = rf'{file_receive_path}\{file_path}' # 构建文件路径
         full_path = os.path.normpath(full_path)  # 标准化路径，确保路径分隔符和大小写符合 Windows 的规范
         return full_path, filename
     else:
@@ -453,20 +453,20 @@ def message_action(data):
     if message_info["is_file"][0] != "nothing":
         source_path, file_name = message_info["is_file"]
         # 启动文件解读
-        if user_state not in ("文档问答","知识库问答"):
+        if user_state not in ("文档问答", "知识库问答"):  
+            # 临时文件路径
             file_path_temp = f"{user_data_path}_chat_temp_{user_id}"
+            # 移动文件
             while True:
                 try:
                     response_message = move_file(rf"{source_path}", file_name, file_path_temp, allowed_extensions) + "😊"
-                    print("移动文件成功")
+                    print(f"{user_state}移动文件成功")
                     break
                 except Exception as e:
                     print(e)
-                    print("移动文件失败，重试中")
-                    time.sleep(1)
-                    
-            question = "请分析文档内容，并输出一个结论"
-            
+                    print(f"{user_state}移动文件失败，重试中")
+                    time.sleep(1)    
+            question = "请用中文对以上内容分析，并输出一个结论"
             # 判断操作系统类型
             if sys.platform.startswith('win'):
                 command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
@@ -474,10 +474,19 @@ def message_action(data):
                 command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
             # 执行命令
             subprocess.Popen(command, shell=True)
-
             response_message = ""
         else:
-            response_message = move_file(source_path, file_name, file_path_temp, allowed_extensions) + "😊"
+            # 移动文件
+            while True:
+                try:
+                    response_message = move_file(rf"{source_path}", file_name, message_info["embedding_data_path"], allowed_extensions) + "😊"
+                    print(f"{user_state}移动文件成功")
+                    break
+                except Exception as e:
+                    print(e)
+                    print(f"{user_state}移动文件失败，重试中")
+                    time.sleep(1) 
+        print(f"移动文件response_message:{response_message}")
             
 
 
@@ -499,7 +508,7 @@ def message_action(data):
             # 其它命令和问答
             else:
                 # 命令： /我的文档 
-                if command_name in ("/我的文档", f"{at_string} /我的文档"):
+                if command_name == "/我的文档":
                     print("命令匹配！")
                     try:
                         all_file = get_files_in_directory(embedding_data_path)
@@ -515,7 +524,7 @@ def message_action(data):
                         response_message = "你还没有文档，请先给我发送你的文档。😊"
 
                 # 命令： /删除文档 
-                elif command_name in ("/删除文档", f"{at_string} /删除文档"):
+                elif command_name == "/删除文档":
                     # 取得文件名
                     try:
                         file_path = command_parts[1]
@@ -528,7 +537,7 @@ def message_action(data):
                         response_message = "命令错误😊"
 
                 # 命令： /邀请1 
-                elif command_name in ("/邀请1", f"{at_string} /邀请1"):
+                elif command_name == "/邀请1":
                     try:
                         # 获取命令参数
                         tag_user_id = str(command_parts[1])
@@ -559,7 +568,7 @@ def message_action(data):
                         response_message = f"邀请错误：{e}😊"
 
                 # 命令： /清空文档 
-                elif command_name in ("/清空文档", f"{at_string} /清空文档"):
+                elif command_name == "/清空文档":
                     # 取得文件名
                     try:
                         if os.path.exists(user_data_path):
@@ -571,7 +580,7 @@ def message_action(data):
                         response_message = "命令错误😊"
                                 
                 # 命令： /量化文档 
-                elif command_name in ("/量化文档", f"{at_string} /量化文档"):
+                elif command_name == "/量化文档":
                     embedding_type = "file"
                     try:
                         # 判断操作系统类型
@@ -589,7 +598,7 @@ def message_action(data):
                         response_message = f"量化失败：{e}😊"
 
                 # 命令： /量化网站 
-                elif command_name in ("/量化网站", f"{at_string} /量化网站"):
+                elif command_name == "/量化网站":
                     embedding_type = "site"
                     site_url = base64.b64encode(json.dumps(command_parts[1]).encode()).decode()
                     try:
@@ -607,58 +616,58 @@ def message_action(data):
                     response_message = "这将需要很长、很长的时间...不过你可以问我些其它事😊"
 
                 # 命令： /上传文档 
-                elif command_name in ("/上传文档", f"{at_string} /上传文档"):
+                elif command_name == "/上传文档":
                     # 取得文件名
                     response_message = "请直接发送文档😊"
 
                 # 命令： /文档问答 
-                elif command_name in ("/文档问答", f"{at_string} /文档问答"):
+                elif command_name == "/文档问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "文档问答")
                     response_message = "你己切换到 【文档问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/知识库问答😊"
                 
                 # 命令： /网站问答 
-                elif command_name in ("/网站问答", f"{at_string} /网站问答"):
+                elif command_name == "/网站问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "网站问答")
                     response_message = "你己切换到 【网站问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/知识库问答\n插件问答😊" 
 
                 # 命令： /知识库问答 
-                elif command_name in ("/知识库问答", f"{at_string} /知识库问答"):
+                elif command_name == "/知识库问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "知识库问答")
                     response_message = "你己切换到 【知识库问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/网站问答\n/插件问答😊"   
 
                 # 命令： /聊天 
-                elif command_name in ("/聊天", f"{at_string} /聊天"):
+                elif command_name == "/聊天":
                     # 切换到 聊天 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "聊天")
                     response_message = "你己切换到 【聊天】 状态。其它状态命令：\n/网站问答\n/文档问答\n/知识库问答\n/插件问答😊" 
 
                 # 命令： /插件问答
-                elif command_name in ("/插件问答", f"{at_string} /插件问答"):
+                elif command_name == "/插件问答":
                     switch_user_state(user_id, source_id, "插件问答")
                     response_message = "你己切换到 【插件问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/文档问答\n/知识库问答😊" 
 
                 # 命令： /我的状态 
-                elif command_name in ("/我的状态", f"{at_string} /我的状态"):
+                elif command_name == "/我的状态":
                     # 从数据库中查找用户当前状态
                     user_state = get_user_state_from_db(user_id, source_id)
                     response_message = f"【{user_state}】😊"
                 
                 # 命令： /我的命名空间 
-                elif command_name in ("/我的命名空间", f"{at_string} /我的命名空间"):
+                elif command_name == "/我的命名空间":
                     if name_space == "no":
                         response_message = "你当前所在聊天对象中还没有插件，你可以创建插件，或用 ::命名空间 的命令切换到已有的插件命名空间😊"
                     else:
                         response_message = "【" + name_space + "】😊"
                 
                 # 命令： /开启群消息 
-                elif command_name in ("/开启群消息", f"{at_string} /开启群消息"):
+                elif command_name == "/开启群消息":
                     try:
                         switch_allow_state(message_info["group_id"], "on")
                         response_message = "现在不管谁说话，我都会在群里回答😊，如果嫌小的话多，你就发 /关闭群消息"
@@ -666,7 +675,7 @@ def message_action(data):
                         response_message = f"群消息开启失败：{e}😊"
 
                 # 命令： /关闭群消息 
-                elif command_name in ("/关闭群消息", f"{at_string} /关闭群消息"):
+                elif command_name == "/关闭群消息":
                     try:
                         switch_allow_state(message_info["group_id"], "off")
                         response_message = "好的，小的先行告退，就不插嘴各位大人的聊天了，有需要时@我😊"
@@ -674,7 +683,7 @@ def message_action(data):
                         response_message = f"群消息关闭失败：{e}😊"
 
                 # 命令： /清空记录 
-                elif command_name in ("/清空记录", f"{at_string} /清空记录"):
+                elif command_name == "/清空记录":
                     try:
                         user_state = get_user_state_from_db(user_id, source_id)
                         delete_all_records(source_id, user_state, name_space)
@@ -724,27 +733,33 @@ def message_action(data):
 
                     # 文档问答。文档未经过分割向量化，直接发给LLM推理
                     elif user_state == "文档问答":
-                        question = message_info["message"]
-                        
-                        if sys.platform.startswith('win'):
-                        # Windows 上的命令
-                            command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
-                        elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-                            # Linux 或 macOS 上的命令
-                            command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
-                        # 执行命令
-                        subprocess.Popen(command, shell=True)
-                        
-                        response_message = ""
+                        if message_info["is_file"][0] == "nothing":
+                            question = message_info["message"]
+                            
+                            if sys.platform.startswith('win'):
+                            # Windows 上的命令
+                                command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
+                            elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                                # Linux 或 macOS 上的命令
+                                command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
+                            # 执行命令
+                            subprocess.Popen(command, shell=True)
+                            
+                            response_message = ""
 
                     # 聊天。
                     else:
                         query = f'{message_info["message"]}'
                         response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
-            
+    else:
+        response_message = ""     
                         
     # 发送消息
+    if not response_message:
+        response_message = ""
+        
     print("=" * 50, "\n",f"答案：{response_message}") 
+    
     try: 
         asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
     except Exception as e:

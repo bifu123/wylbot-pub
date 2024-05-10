@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 import requests
-from config import at_string, http_url, admin_qq, bot_qq, chat_type_allow
+from config import http_url, chat_type_allow
 
 
 # 根据聊天类型发送消息的异步函数
@@ -35,7 +35,7 @@ async def answer_action(chat_type, user_id, group_id, at, response_message):
     # 其它   
     else:
         params = {
-            "wxid": admin_qq, 
+            "wxid": admin_wxid, 
             "content": f"{user_id} 发送了未知类型消息"
         } 
   

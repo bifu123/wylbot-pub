@@ -131,7 +131,7 @@ async def run_chain(retriever, source_id, query, user_state="聊天", name_space
     if query !="" and query is not None:
         print("=" * 50)
         print("当前使用的知识库LLM：", llm_rag)
-        template_cn = """请根据上下文和对话历史记录用中文完整地回答问题 Please answer in Chinese:
+        template_cn = """请根据上下文和对话历史记录用简体中文完整地回答问题 Please answer in Simplified Chinese:
         {context}
         {question}
         """
@@ -211,7 +211,7 @@ async def chat_generic_langchain(source_id, query, user_state="聊天",name_spac
     
         # 由模板生成 prompt
         prompt = ChatPromptTemplate.from_template("""
-            你是一个热心的人，尽力为人们解答问题，请用中文回答。Please answer in Chinese:
+            你是一个热心的人，尽力为人们解答问题，请用简体中文回答。Please answer in Simplified Chinese:
             {chat_history}
             {question}
         """)

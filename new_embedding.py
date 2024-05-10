@@ -9,7 +9,7 @@ import time
 
 # 文档加工
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredWordDocumentLoader, UnstructuredHTMLLoader, UnstructuredMarkdownLoader, PythonLoader # 文档类加载器
-from langchain.document_loaders.sitemap import SitemapLoader # 站点地图加载 
+from langchain_community.document_loaders import SitemapLoader # 站点地图加载 
 from langchain_community.document_loaders import WebBaseLoader # 单个URL加载
 from langchain_community.document_loaders import UnstructuredURLLoader # 多URL列表加载
 from langchain_community.document_loaders import SeleniumURLLoader # 多URL列表加载（含JS）
@@ -69,24 +69,7 @@ print("site_url:",site_url)
 print("*" * 40)
 
 
-# ****************************************
-# embedding_data_path: ./data\415135222
-# embedding_db_path: ./chroma_db\415135222
-# source_id: 415135222
-# chat_type: private
-# user_id: 415135222
-# group_id: no
-# at: no
-# embedding_type: site
-# site_url: http://cho.freesky.sbs
-# ****************************************
-
-
-
-
 ####################### 量化模型 
-# 将 gemini api 加入环境变量
-os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY #将GOOGLE_API_KEY加载到环境变量中
 
 # 本地量化模型
 embedding_ollama = OllamaEmbeddings(
@@ -94,17 +77,12 @@ embedding_ollama = OllamaEmbeddings(
     model = embedding_ollama_conf["model"]
 ) 
 
-# 线上google量化模型
-embedding_google = GoogleGenerativeAIEmbeddings(
-    model = embedding_google_conf["model"]
-) 
-# embedding_google.embed_query("hello, world!")
 
 # 选择量化模型
 if model_choice["embedding"] == "ollama":
     embedding = embedding_ollama
-else:
-    embedding = embedding_google
+# else:
+#     embedding = embedding_google
 
 
 
@@ -298,7 +276,7 @@ Chroma.from_documents(
 )
 
 # 构建消息内容
-response_message = f"量化执行结束，已迁移至新知识库：{new_embedding_db_path}"
+response_message = f"量化执行结束，已迁移至新知识库：{new_embedding_db_path}😊"
 
 # 发送消息
 asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
