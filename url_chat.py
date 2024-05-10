@@ -8,7 +8,7 @@ import time
 import base64
 import re
 
-from langchain.document_loaders.sitemap import SitemapLoader # 站点地图加载 
+from langchain_community.document_loaders.sitemap import SitemapLoader # 站点地图加载 
 from langchain_community.document_loaders import WebBaseLoader # 单个URL加载
 from langchain_community.document_loaders import UnstructuredURLLoader # 多URL列表加载
 from langchain_community.document_loaders import SeleniumURLLoader
