@@ -43,9 +43,9 @@ db_path = "./chroma_db"
 
 
 # ******************** 线上模型api key ******************** 
-DASHSCOPE_API_KEY  = "sk-7d48078fa897417c9cfa5cfa70d95f9a" # 通义千问 api key
-MOONSHOT_API_KEY = "sk-iIiYG1GyHKH66c0Rag0PTH3UQzF20wZT14Pr0nOD6AX35FJk" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
-GROQ_API_KEY = "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" # GROQ API KEY 在这里申请: https://console.groq.com/keys
+DASHSCOPE_API_KEY  = "your DASHSCOPE_API_KEY" # 通义千问 api key
+MOONSHOT_API_KEY = "your MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
+GROQ_API_KEY = "your GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
 
 
 
