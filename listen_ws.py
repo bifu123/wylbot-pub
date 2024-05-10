@@ -24,17 +24,11 @@ def handle_message(data):
     print("\n", "="*20, "Message","="*20)
     formatted_json = json.dumps(data, indent=4, ensure_ascii=False)
     print(formatted_json)
-    if "😊" not in data["data"][0]["StrContent"]:
+    don_send_message = '''
+    " [文字解释] 当然，我很高兴能为您解答问题。请问有什么需要我回答的问题？\n\n     [语音输出] 当然，我很高兴能为您解答问题。请问有什么需要我回答的问题？😊"
+    '''
+    if "😊" not in data["data"][0]["StrContent"] and data["data"][0]["StrContent"] != don_send_message:
         message_action(data)
-
-# def handle_notice(data):
-#     # 处理通知类型的事件
-#     print("\n", "="*20, "Notice", "="*20, "\n", data)
-#     event_action(data)
-
-# def handle_request(data):
-#     # 处理请求类型的事件
-#     print("Request:", data)
 
 def on_error(ws, error):
     print("Error:", error)

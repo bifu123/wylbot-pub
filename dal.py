@@ -9,6 +9,9 @@ import base64
 import importlib.util
 import inspect
 import subprocess
+import getpass
+import time
+import stat
 
 
 # 从文件导入
@@ -61,6 +64,22 @@ def load_retriever(db_path, embedding):
     retriever = vectorstore_from_db.as_retriever()
     return retriever
 
+# 消息中是否包含文件
+def is_upload_file(bot_id, BytesExtra):
+    # 解码 Base64 数据
+    compressed_data = base64.b64decode(BytesExtra)
+    # 匹配路径
+    match = re.search(bytes(f'{bot_id}.*\\..*', 'utf-8') + b'.*', compressed_data) # 匹配 wxid_a2qwn1yzj30722 及其之后的所有字符
+    if match:
+        file_path = match.group().decode()
+        filename = os.path.basename(file_path)
+        username = getpass.getuser() # 获取当前用户名
+        full_path = rf'C:\Users\{username}\Documents\WeChat Files\{file_path}' # 构建文件路径
+        full_path = os.path.normpath(full_path)  # 标准化路径，确保路径分隔符和大小写符合 Windows 的规范
+        return full_path, filename
+    else:
+        return "nothing", "nothing"
+\
 # 检查文件的函数
 def check_file_extension(file_name, allowed_extensions):
     file_ext = file_name[file_name.rfind("."):].lower()
@@ -68,7 +87,6 @@ def check_file_extension(file_name, allowed_extensions):
 
 # 定义下载文件的函数
 def download_file(url: str, file_name: str, download_path: str, allowed_extensions):
-    allowed_extensions = allowed_extensions
     if check_file_extension(file_name, allowed_extensions):
         # 下载文件
         response = requests.get(url)
@@ -89,6 +107,34 @@ def download_file(url: str, file_name: str, download_path: str, allowed_extensio
     else:
         extensions_string = ", ".join(allowed_extensions)
         msg = f"你上传的文件我将不会保存到服务器上，它只会保存在群文件里。我能为你保存这些文件类型：{extensions_string}"
+    return msg
+
+# 定义移动文件的函数
+def move_file(source_path, file_name, target_path, allowed_extensions):
+    # 获取文件的当前权限
+    current_permissions = os.stat(source_path).st_mode
+    # 取消只读属性
+    new_permissions = current_permissions | stat.S_IWRITE
+    # 更改文件的权限
+    os.chmod(source_path, new_permissions)
+    
+    if check_file_extension(file_name, allowed_extensions): # 检查文件扩展名
+        if not os.path.exists(target_path): # 如果目标路径不存在，则创建
+            os.makedirs(target_path)    
+        file_path = os.path.join(target_path, file_name) # 构建目标路径
+        shutil.copyfile(source_path, file_path)
+        msg = f"文件成功保存: {file_path}"
+        # 删除原始文件
+        os.remove(source_path)
+    else:
+        extensions_string = ", ".join(allowed_extensions)
+        msg = f"你上传的文件我将不会保存到服务器上，它只会保存在群文件里。我能为你保存这些文件类型：{extensions_string}"
+        
+     # 获取文件的当前权限
+    current_permissions = os.stat(file_path).st_mode
+    # 更改文件的权限
+    os.chmod(file_path, new_permissions)       
+    
     return msg
 
 # 显示文件夹下所有文件的函数
@@ -261,6 +307,7 @@ def message_action(data):
     # 定义一个存储消息信息的字典
     message_info = {}  
     
+    # 消息类型
     message_info["post_type"] = "message"
     
     # 机器人微信号
@@ -270,6 +317,12 @@ def message_action(data):
     # 机器人昵称
     bot_nickname = requests.get(http_url + "/api/accountbywxid?wxid=" + bot_id).json()["data"]["nickname"]
     message_info["bot_nickname"] = bot_nickname
+    
+    # 是否包含文件
+    BytesExtra = data["data"][0]["BytesExtra"]
+    is_file = is_upload_file(bot_id, BytesExtra)
+    message_info["is_file"] = is_file
+ 
     
     # 获取取消息内容
     group_at_string = is_group_at(data["data"][0]["StrContent"])
@@ -396,7 +449,37 @@ def message_action(data):
             print(f"URL错误：{e}")
         response_message = ""
 
-    
+    # 如果包含文件，则启动文件解读
+    if message_info["is_file"][0] != "nothing":
+        source_path, file_name = message_info["is_file"]
+        # 启动文件解读
+        if user_state not in ("文档问答","知识库问答"):
+            file_path_temp = f"{user_data_path}_chat_temp_{user_id}"
+            while True:
+                try:
+                    response_message = move_file(rf"{source_path}", file_name, file_path_temp, allowed_extensions) + "😊"
+                    print("移动文件成功")
+                    break
+                except Exception as e:
+                    print(e)
+                    print("移动文件失败，重试中")
+                    time.sleep(1)
+                    
+            question = "请分析文档内容，并输出一个结论"
+            
+            # 判断操作系统类型
+            if sys.platform.startswith('win'):
+                command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
+            elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
+            # 执行命令
+            subprocess.Popen(command, shell=True)
+
+            response_message = ""
+        else:
+            response_message = move_file(source_path, file_name, file_path_temp, allowed_extensions) + "😊"
+            
+
 
     # 在允许回复的聊天类型中处理
     if message_info["chat_type"] in chat_type_allow and message_info["is_url"][0] == "no": 
@@ -656,96 +739,15 @@ def message_action(data):
 
                     # 聊天。
                     else:
-                        
                         query = f'{message_info["message"]}'
                         response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
             
                         
-        # 发送消息
-        print("=" * 50, "\n",f"答案：{response_message}") 
-        try: 
-            asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-        except Exception as e:
-            print("=" * 50, "\n",f"发送消息错误：{e}")
+    # 发送消息
+    print("=" * 50, "\n",f"答案：{response_message}") 
+    try: 
+        asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
+    except Exception as e:
+        print("=" * 50, "\n",f"发送消息错误：{e}")
 
 
-# #**************** 事件处理 ********************************************
-# def event_action(data):
-#     # 判断事件类型
-#     notice_type = data["notice_type"]
-
-#     # 获取当前群允许的聊天类型
-#     chat_type_allow = get_allow_state(data)
-#     print("=" * 50, "\n","当前允许的聊天消息类型：", chat_type_allow)
-
-#     # 判断聊天类型、获得必要参数（函数在send.py中）
-#     chat_type = get_chat_type(data)["chat_type"]
-#     at = get_chat_type(data)["at"]
-#     user_id = get_chat_type(data)["user_id"]
-#     group_id = get_chat_type(data)["group_id"]
-    
-    
-
-#     if chat_type in ("group_at", "group"):
-#         source_id = group_id
-#     elif chat_type == "private":
-#         source_id = user_id
-#     else:
-#         source_id = user_id
-
-#     # 获取name_space
-#     name_space = get_user_name_space(user_id, source_id)
-
-#     user_state = get_user_state_from_db(user_id, source_id) # 先检查用户状态
-  
-#     print("=" * 50)
-#     print(f"chat_type:{chat_type}\nat:{at}\nuser_id:{user_id}\ngroup_id:{group_id}\nsource_id:{source_id}\nuser_state:{user_state}")
-   
-
-#     # 如果消息提醒是群文件和离线文件，下载后返回下载成功消息
-#     if notice_type in ("offline_file", "group_upload"):
-#         file_name = data["file"]["name"]
-#         file_size = data["file"]["size"]
-#         file_url = data["file"]["url"]
-#         try:
-#             # 群文件路径名
-#             user_data_path = os.path.join(data_path, "group_" + str(data["group_id"]))
-#         except:
-#             # 用户文件路径名
-#             user_data_path = os.path.join(data_path, user_id)
-        
-#         # 启动文件解读
-#         if user_state not in ("文档问答","知识库问答"):
-#             file_path_temp = f"{user_data_path}_chat_temp_{user_id}"
-#             response_message = download_file(file_url, file_name, file_path_temp, allowed_extensions=allowed_extensions)
-#             question = "请仔细阅读"
-            
-#             # 判断操作系统类型
-#             if sys.platform.startswith('win'):
-#                 command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
-#             elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-#                 command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
-#             # 执行命令
-#             subprocess.Popen(command, shell=True)
-
-#             response_message = ""
-#         else:
-#             response_message = download_file(file_url, file_name, user_data_path, allowed_extensions=allowed_extensions)
-
-#     # 如果不包含文件的提醒
-#     else:
-#         # 当状态为插件问答
-#         if user_state == "插件问答":
-#             post_type =  data["post_type"]
-#             query = get_response_from_plugins(name_space, post_type, user_state, data)
-#             # 执行问答
-#             response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
-#         else:
-#             response_message = f"{notice_type}"
-    
-#     print("=" * 50)
-#     print(response_message)
-
-#     # 发送消息
-#     asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-    

@@ -1,66 +1,22 @@
-data = {
-    "message": "你好",
-    "chat_type_allow": [
-        "private",
-        "group_at"
-    ],
-    "user_id": "cbf_415135222",
-    "chat_type": "private",
-    "at": "no",
-    "group_id": "no",
-    "source_id": "cbf_415135222",
-    "user_state": "插件问答",
-    "user_data_path": "./data\\cbf_415135222",
-    "user_db_path": "./chroma_db\\cbf_415135222",
-    "embedding_data_path": "./data\\cbf_415135222",
-    "name_space": "test",
-    "embedding_db_path": "./chroma_db\\cbf_415135222",
-    "embedding_db_path_site": "./chroma_db\\cbf_415135222_site",
-    "command_name": "你好",
-    "command_parts": [
-        "你好"
-    ],
-    "is_image": [
-        "no",
-        "nothing"
-    ],
-    "is_url": [
-        "no",
-        "nothing"
-    ],
-    "is_name_space_command": [
-        "no",
-        "nothing"
-    ],
-    "current_lock_state": 0
-}
+import base64
+import re
 
-# 异步函数
-# import asyncio
-# import aiohttp
+data = "CgQIEBAAGhEIARINY2JmXzQxNTEzNTIyMhqBAwgHEvwCPG1zZ3NvdXJjZT4KICAgIDxhdHVzZXJsaXN0PgogICAgICAgIDwhW0NEQVRBWyx3eGlkX2EycXduMXl6ajMwNzIyXV0+CiAgICA8L2F0dXNlcmxpc3Q+CiAgICA8cHVhPjE8L3B1YT4KICAgIDxzaWxlbmNlPjA8L3NpbGVuY2U+CiAgICA8bWVtYmVyY291bnQ+OTwvbWVtYmVyY291bnQ+CiAgICA8c2lnbmF0dXJlPlYxX3crbHhoM0hrfHYxX3crbHhoM0hrPC9zaWduYXR1cmU+CiAgICA8dG1wX25vZGU+CiAgICAgICAgPHB1Ymxpc2hlci1pZCAvPgogICAgPC90bXBfbm9kZT4KICAgIDxzZWNfbXNnX25vZGU+CiAgICAgICAgPGFsbm9kZT4KICAgICAgICAgICAgPGZyPjE8L2ZyPgogICAgICAgIDwvYWxub2RlPgogICAgPC9zZWNfbXNnX25vZGU+CjwvbXNnc291cmNlPgoaJAgCEiBlNjM2N2YzNmJmODNkMTg0MTJmMTViZWQwNWIzODkyNQ=="
 
-# from send import answer_action
-# asyncio.run(answer_action("private", "cbf_415135222", "no", "no", "你好"))
+data1 = "CgQIEBAAGuoBCAcS5QE8bXNnc291cmNlPgogICAgPHNpZ25hdHVyZT5WMV9HWkxYcHFNVnx2MV83UW1DcTIwbDwvc2lnbmF0dXJlPgogICAgPHRtcF9ub2RlPgogICAgICAgIDxwdWJsaXNoZXItaWQgLz4KICAgIDwvdG1wX25vZGU+CiAgICA8c2VjX21zZ19ub2RlPgogICAgICAgIDxhbG5vZGU+CiAgICAgICAgICAgIDxmcj4xPC9mcj4KICAgICAgICA8L2Fsbm9kZT4KICAgIDwvc2VjX21zZ19ub2RlPgo8L21zZ3NvdXJjZT4KGiQIAhIgYzM3MDYzYjRhYjQwYTdmMTlmMWQyODY0NGI1YzU3NDAaRQgEEkF3eGlkX2EycXduMXl6ajMwNzIyXEZpbGVTdG9yYWdlXEZpbGVcMjAyNC0wNVzlhYPpvpnpo57liIAoMikuZG9jeA=="
 
-# import requests
-# import json
+compressed_data = base64.b64decode(data1)
 
-# url = "http://192.168.66.29:8080/api/sendtxtmsg"
-# data = {
-#     "wxid": "cbf_415135222",
-#     "content": "你好"
-# }
-# response = requests.post(url, json=data)
-# print(response.text)
-    
-# # http://192.168.66.29:8080/api/sendtxtmsg?wxid=cbf_415135222&content=hello
+print(compressed_data)
 
-from config import *
-import requests
-import json
+bot_id = b"wxid_a2qwn1yzj30722"
 
+# 查找以bot_id开头的部分
+match = re.search(bytes(f'{bot_id}', 'utf-8') + b'.*', compressed_data) # 匹配 wxid_a2qwn1yzj30722 及其之后的所有字符
+print(match)
 
-user_id = "cbf_415135222"
-nickname = requests.get(http_url + "/api/accountbywxid?wxid=" + user_id).json()["data"]["nickname"]
-
-print(nickname)
+if match:
+    bot_data = match.group()
+    print(bot_data)
+else:
+    print("未找到与指定 bot_id 匹配的部分。")
