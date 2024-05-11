@@ -1,6 +1,8 @@
 import threading
+import time
 import websocket
 import json
+import pyautogui
 from config import ws_url, model_choice, must_use_llm_rag
 from dal import *
 from sqlite_helper import init_commands_table, init_models_table
@@ -12,40 +14,40 @@ init_commands_table()
 embedding = model_choice["embedding"]
 llm = model_choice["llm"]
 llm_rag = model_choice["llm_rag"]
-init_models_table(embedding ,llm, llm_rag, must_use_llm_rag)
+init_models_table(embedding, llm, llm_rag, must_use_llm_rag)
+
+def press_enter_every_2_seconds():
+    try:
+        while True:
+            # 模拟按下回车键
+            pyautogui.press('enter')
+            # print("enter")
+            # 等待2秒
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("程序已停止")
 
 def on_message(ws, message):
     data = json.loads(message)
     handle_message(data)
 
-
-def handle_message_thread(data):
-    threading.Thread(target=handle_message, args=(data,)).start()
-
-# def handle_notice_thread(data):
-#     threading.Thread(target=handle_notice, args=(data,)).start()
-
 def handle_message(data):
-    # 处理私聊消息或群聊消息
-    print("\n", "="*20, "Message","="*20)
-    # formatted_json = json.dumps(data, indent=4, ensure_ascii=False)
-    # print(formatted_json)
+    print("\n", "=" * 20, "Message", "=" * 20)
     print(data)
     if "😊" not in data["data"][0]["StrContent"]:
-        message_action(data)
+        threading.Thread(target=message_action, args=(data,)).start()
 
 def on_error(ws, error):
     print("Error:", error)
 
 def on_close(ws):
-    # 连接关闭时重新连接
     print("Connection closed")
-    ws.run_forever()
+    # 连接关闭时重新连接
+    create_connection()
 
 def on_open(ws):
     print("Connection established")
 
-# 设置自动重连
 def create_connection():
     ws = websocket.WebSocketApp(ws_url,
                                 on_message=on_message,
@@ -54,5 +56,8 @@ def create_connection():
     ws.on_open = on_open
     ws.run_forever()
 
-# 建立 WebSocket 连接
+# 启动 WebSocket 连接
 create_connection()
+
+# 启动按下回车键的线程
+threading.Thread(target=press_enter_every_2_seconds).start()
