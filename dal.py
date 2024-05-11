@@ -444,7 +444,13 @@ def message_action(data):
                 # Linux 或 macOS 上的命令
                 command = f"python url_chat.py {message_info['is_url'][1]} {question} {chat_type} {message_info['user_id']} {group_id} {at} {source_id} {user_state}; exit"
             # 执行命令
-            subprocess.Popen(command, shell=True)
+            process = subprocess.Popen(command, shell=True)
+            # 持续尝试关闭窗口
+            while True:
+                # 等待进程结束
+                if process.poll() is not None:
+                    break
+                
         except Exception as e:
             print(f"URL错误：{e}")
         response_message = ""

@@ -76,33 +76,36 @@ llm_groq = ChatGroq(
 
 
 ############################# 模型选择 #################################
+# 读取数据库
+models = get_models_table()
 # 选择量化模型
-if model_choice["embedding"] == "ollama":
+if models["embedding"] == "ollama":
     embedding = embedding_ollama
 # else:
 #     embedding = embedding_google
 
 # 选择聊天语言模型
-if model_choice["llm"] == "ollama":
+if models["llm"] == "ollama":
     llm = llm_ollama
-elif model_choice["llm"] == "tongyi": 
+elif models["llm"] == "tongyi": 
     llm = llm_tongyi
-elif model_choice["llm"] == "kimi": 
+elif models["llm"] == "kimi": 
     llm = llm_kimi
-elif model_choice["llm"] == "groq": 
+elif models["llm"] == "groq": 
     llm = llm_groq
 
 # 选择知识库语言模型
-if model_choice["llm_rag"] == "ollama":
+if models["llm_rag"] == "ollama":
     llm_rag = llm_ollama
-elif model_choice["llm_rag"] == "tongyi": 
+elif models["llm_rag"] == "tongyi": 
     llm_rag = llm_tongyi
-elif model_choice["llm_rag"] == "kimi": 
-    llm_rag = llm_kimi
-elif model_choice["llm_rag"] == "groq": 
+elif models["llm_rag"] == "kimi": 
+    models = llm_kimi
+elif models["llm_rag"] == "groq": 
     llm_rag = llm_groq
+    
 
-
+must_use_llm_rag = models["must_use_llm_rag"]
 
 ############################# 模型方法 #################################
 
@@ -218,7 +221,7 @@ async def chat_generic_langchain(source_id, query, user_state="聊天",name_spac
         print("=" * 50)
         
         # 创建链，将历史记录传递给链
-        if user_state != "聊天" and must_use_llm_rag == True:
+        if user_state != "聊天" and must_use_llm_rag == 1:
             chain = {
                 "question": RunnablePassthrough(), 
                 "chat_history": lambda x: chat_history,

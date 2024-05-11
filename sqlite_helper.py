@@ -95,6 +95,14 @@ def create_tables(connection):
                     user_state TEXT,
                     receive_params_num INTEGER DEFAULT 0,
                     lock_state INTEGER DEFAULT 0)''')
+    # 创建模型表
+    cursor.execute('''CREATE TABLE IF NOT EXISTS models (
+                        embedding TEXT DEFAULT 'ollama',
+                        llm TEXT DEFAULT 'ollama',
+                        llm_rag TEXT DEFAULT 'ollama',
+                        must_use_llm_rag INTEGER DEFAULT 0
+                    )''')
+
  
     connection.commit()
     
@@ -150,7 +158,41 @@ def init_commands_table():
         conn.commit()
         print("命令表初始化完成")  
 
+# 初始化模型表
+def init_models_table(embedding, llm, llm_rag, must_use_llm_rag):
+    with db_lock:
+        conn = get_database_connection()
+        cursor = conn.cursor()
 
+        # 尝试从数据库中获取模型记录
+        cursor.execute("SELECT * FROM models")
+        existing_model = cursor.fetchone()
+
+        if not existing_model:
+            # 如果记录不存在，则插入新记录
+            cursor.execute("INSERT INTO models (embedding, llm, llm_rag, must_use_llm_rag) VALUES (?, ?, ?, ?)", (embedding, llm, llm_rag, must_use_llm_rag))
+        print("模型表初始化完成")
+        conn.commit()
+        
+# 获取模型表
+def get_models_table():
+    with db_lock:
+        conn = get_database_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM models")
+        model = cursor.fetchone()
+        result = {"embedding": model[0], "llm": model[1], "llm_rag": model[2], "must_use_llm_rag": model[3]}
+        return result
+        
+# 更新模型表
+def update_models_table(embedding, llm, llm_rag, must_use_llm_rag):
+    must_use_llm_rag = int(must_use_llm_rag)
+    with db_lock:
+        conn = get_database_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE models SET embedding = ?, llm = ?, llm_rag = ?, must_use_llm_rag = ?", (embedding, llm, llm_rag, must_use_llm_rag))
+        conn.commit()
+        
 # 函数用于获取用户状态
 def get_user_state(user_id, source_id):
     with db_lock:
