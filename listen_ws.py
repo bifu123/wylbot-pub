@@ -28,8 +28,9 @@ def handle_message_thread(data):
 def handle_message(data):
     # 处理私聊消息或群聊消息
     print("\n", "="*20, "Message","="*20)
-    formatted_json = json.dumps(data, indent=4, ensure_ascii=False)
-    print(formatted_json)
+    # formatted_json = json.dumps(data, indent=4, ensure_ascii=False)
+    # print(formatted_json)
+    print(data)
     if "😊" not in data["data"][0]["StrContent"]:
         message_action(data)
 
