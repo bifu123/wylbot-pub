@@ -77,36 +77,36 @@ llm_groq = ChatGroq(
 
 ############################# 模型选择 #################################
 # 读取数据库
-models = get_models_table()
-# 选择量化模型
-if models["embedding"] == "ollama":
-    embedding = embedding_ollama
-# else:
-#     embedding = embedding_google
+def get_models_on_request():
+    models = get_models_table()
+    must_use_llm_rag = models["must_use_llm_rag"]
+    # 选择量化模型
+    if models["embedding"] == "ollama":
+        embedding = embedding_ollama
+    # else:
+    #     embedding = embedding_google
 
-# 选择聊天语言模型
-if models["llm"] == "ollama":
-    llm = llm_ollama
-elif models["llm"] == "tongyi": 
-    llm = llm_tongyi
-elif models["llm"] == "kimi": 
-    llm = llm_kimi
-elif models["llm"] == "groq": 
-    llm = llm_groq
+    # 选择聊天语言模型
+    if models["llm"] == "ollama":
+        llm = llm_ollama
+    elif models["llm"] == "tongyi": 
+        llm = llm_tongyi
+    elif models["llm"] == "kimi": 
+        llm = llm_kimi
+    elif models["llm"] == "groq": 
+        llm = llm_groq
 
-# 选择知识库语言模型
-if models["llm_rag"] == "ollama":
-    llm_rag = llm_ollama
-elif models["llm_rag"] == "tongyi": 
-    llm_rag = llm_tongyi
-elif models["llm_rag"] == "kimi": 
-    models = llm_kimi
-elif models["llm_rag"] == "groq": 
-    llm_rag = llm_groq
+    # 选择知识库语言模型
+    if models["llm_rag"] == "ollama":
+        llm_rag = llm_ollama
+    elif models["llm_rag"] == "tongyi": 
+        llm_rag = llm_tongyi
+    elif models["llm_rag"] == "kimi": 
+        models = llm_kimi
+    elif models["llm_rag"] == "groq": 
+        llm_rag = llm_groq
+    return embedding, llm, llm_rag, must_use_llm_rag
     
-
-must_use_llm_rag = models["must_use_llm_rag"]
-
 ############################# 模型方法 #################################
 
 # 获取聊天记录
@@ -131,6 +131,7 @@ async def do_chat_history(chat_history, source_id, query, answer, user_state, na
 
 # 向量检索聊天（执行向量链）
 async def run_chain(retriever, source_id, query, user_state="聊天", name_space="test"):
+    embedding, llm, llm_rag, must_use_llm_rag = get_models_on_request()
     if query !="" and query is not None:
         print("=" * 50)
         print("当前使用的知识库LLM：", llm_rag)
@@ -188,6 +189,7 @@ async def run_chain(retriever, source_id, query, user_state="聊天", name_space
 
 # 通用聊天
 async def chat_generic_langchain(source_id, query, user_state="聊天",name_space="test"):
+    embedding, llm, llm_rag, must_use_llm_rag = get_models_on_request()
     if query !="" and query is not None:
         # 处理聊天记录
         data = fetch_chat_history(source_id, user_state, name_space) # 从数据库中提取source_id的聊天记录
