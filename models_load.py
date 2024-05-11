@@ -102,7 +102,7 @@ def get_models_on_request():
     elif models["llm_rag"] == "tongyi": 
         llm_rag = llm_tongyi
     elif models["llm_rag"] == "kimi": 
-        models = llm_kimi
+        llm_rag = llm_kimi
     elif models["llm_rag"] == "groq": 
         llm_rag = llm_groq
     return embedding, llm, llm_rag, must_use_llm_rag
