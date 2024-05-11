@@ -711,16 +711,19 @@ def message_action(data):
                         update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at) # 更新自定义命令
                         response_message = ""
                     
-                    # 当状态为文档问答
+                    # 当状态为知识库问答
                     elif user_state == "知识库问答":
-                        embedding, llm, llm_rag, must_use_llm_rag = get_models_on_request()
-                        # 调用RAG
-                        print(f"{user_state}:加载 {embedding_db_path} 的向量知识库...")
-                        retriever = load_retriever(embedding_db_path, embedding)
-                        # 准备问题
-                        query = message_info["message"]
-                        # 执行问答
-                        response_message = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))
+                        if message_info["is_file"][0] == "nothing":
+                            embedding, llm, llm_rag, must_use_llm_rag = get_models_on_request()
+                            # 调用RAG
+                            print(f"{user_state}:加载 {embedding_db_path} 的向量知识库...")
+                            retriever = load_retriever(embedding_db_path, embedding)
+                            # 准备问题
+                            query = message_info["message"]
+                            # 执行问答
+                            response_message = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))
+                        else:
+                            response_message = ""
 
 
                     # 当状态为插件问答
@@ -730,7 +733,7 @@ def message_action(data):
                         response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
 
                     # 当状态为网站问答
-                    elif user_state == "网站问答" and message_info["is_file"][0] == "nothing":
+                    elif user_state == "网站问答":
                         embedding, llm, llm_rag, must_use_llm_rag = get_models_on_request()
                         # 调用RAG
                         print(f"加载 {embedding_db_path_site} 的向量知识库...")
@@ -742,17 +745,18 @@ def message_action(data):
 
                     # 文档问答。文档未经过分割向量化，直接发给LLM推理
                     elif user_state == "文档问答":
-                        question = message_info["message"]
-                        
-                        if sys.platform.startswith('win'):
-                        # Windows 上的命令
-                            command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
-                        elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-                            # Linux 或 macOS 上的命令
-                            command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
-                        # 执行命令
-                        subprocess.Popen(command, shell=True)
-                        
+                        if message_info["is_file"][0] == "nothing":
+                            # 准备问题
+                            question = message_info["message"]
+                            # 新开窗口执行问答
+                            if sys.platform.startswith('win'):
+                            # Windows 上的命令
+                                command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
+                            elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                                # Linux 或 macOS 上的命令
+                                command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
+                            # 执行命令
+                            subprocess.Popen(command, shell=True)
                         response_message = ""
 
                     # 聊天。
@@ -762,14 +766,13 @@ def message_action(data):
   
                         
     # 发送消息
-    if not response_message:
-        response_message = ""
-        
-    print("=" * 50, "\n",f"答案：{response_message}") 
-    
-    try: 
-        asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-    except Exception as e:
-        print("=" * 50, "\n",f"发送消息错误：{e}")
+    if response_message:
+        print("=" * 50, "\n",f"答案：{response_message}") 
+        try: 
+            asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
+        except Exception as e:
+            print("=" * 50, "\n",f"发送消息错误：{e}")
+    else:
+        print("=" * 50, "\n",f"没有回复、无需发送消息")
 
 

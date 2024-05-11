@@ -181,7 +181,7 @@ async def run_chain(retriever, source_id, query, user_state="聊天", name_space
             # 处理聊天记录 
             await do_chat_history(chat_history, source_id, query, response_message, user_state, name_space)
         except Exception as e:
-            response_message = "LLM响应错误"
+            response_message = f"LLM响应错误: {e}"
             print(f"LLM响应错误: {e}")
             
         # 返回结果
@@ -242,7 +242,7 @@ async def chat_generic_langchain(source_id, query, user_state="聊天",name_spac
             # 处理聊天记录 
             await do_chat_history(chat_history, source_id, query, response_message, user_state, name_space)
         except Exception as e:
-            response_message = "LLM响应错误"
+            response_message = f"LLM响应错误: {e}"
             print(f"LLM响应错误: {e}")
             
         return response_message + "😊"
