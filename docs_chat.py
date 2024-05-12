@@ -51,10 +51,14 @@ print("*" * 40)
 # 文件夹加载器函数
 def load_documents(data_path):
     print("正在加载" + data_path + "下的所有文档...")
-    loader = DirectoryLoader(data_path, show_progress=True, use_multithreading=True)
-    loaders = loader.load()
-    print(loaders)
-    return loaders
+    try:
+        loader = DirectoryLoader(data_path, show_progress=True, use_multithreading=True)
+        loaders = loader.load()
+        print(loaders)
+        return loaders
+    except Exception as e:
+        print(e)
+        return f"加载文档出错：{e}"
 
 
 name_space = get_user_name_space(user_id, source_id)

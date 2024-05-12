@@ -43,6 +43,7 @@ db_path = "./chroma_db"
 
 
 # ******************** 线上模型api key ******************** 
+GOOGLE_API_KEY = "your GOOGLE_API_KEY" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
 DASHSCOPE_API_KEY  = "your DASHSCOPE_API_KEY" # 通义千问 api key
 MOONSHOT_API_KEY = "your MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
 GROQ_API_KEY = "your GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
@@ -59,6 +60,11 @@ embedding_ollama_conf = {
 # goole量化模型
 embedding_google_conf = { 
     "model": "models/embedding-001"
+} 
+## 线上google gemini语言模型
+llm_gemini_conf = {
+    "model": "gemini-pro",
+    "temperature": 0.7
 } 
 # 本地语言模型 
 llm_ollama_conf = { 
@@ -86,8 +92,12 @@ llm_groq_conf = {
     "model_name": "mixtral-8x7b-32768", # llama3-70b-8192 | mixtral-8x7b-32768
     "temperature": 0.3
 } 
-
-
+# 本地 chatGLM3-6b
+llm_chatGLM_conf = {
+    "endpoint_url": "http://192.168.66.26:8000/v1/chat/completions",
+    "max_tokens": 80000,
+    "top_p": 0.9
+}
 
 
 # ******************** 模型选择 ****************************
@@ -95,15 +105,14 @@ model_choice = {
     # 本地向量模型
     "embedding":"ollama", # embedding: ollama | google
     # 本地知识库模型
-    "llm_rag": "groq", # llm: ollama | tongyi | kimi | groq 
+    "llm_rag": "groq", # llm: ollama | gemini | tongyi | chatglm | kimi | groq 
     # 聊天模型
-    "llm": "groq", # llm: ollama | tongyi | kimi | groq
+    "llm": "groq", # llm: ollama | gemini | tongyi | chatglm | kimi | groq
 }
 
 
-
 # 是否强制非聊天状态时，一律使用本地知识库模型
-must_use_llm_rag = False # True | False # 当文档较大时，建议设置为True。因为在线 API 模型在处理本地文档时Tocken大小有限制，二是考虑到费用问题，当然你可结合自身的需求和实际情况而定
+must_use_llm_rag = 0 # 1 | 0 # 当文档较大时，建议设置为1。因为在线 API 模型在处理本地文档时Tocken大小有限制，二是考虑到费用问题，当然你可结合自身的需求和实际情况而定
 
 
 
