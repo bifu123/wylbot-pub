@@ -110,32 +110,20 @@ def download_file(url: str, file_name: str, download_path: str, allowed_extensio
     return msg
 
 # 定义移动文件的函数
-def move_file(source_path, file_name, target_path, allowed_extensions):
-    # 获取文件的当前权限
-    current_permissions = os.stat(source_path).st_mode
-    # 取消只读属性
-    new_permissions = current_permissions | stat.S_IWRITE
-    # 更改文件的权限
-    os.chmod(source_path, new_permissions)
-    
-    if check_file_extension(file_name, allowed_extensions): # 检查文件扩展名
-        if not os.path.exists(target_path): # 如果目标路径不存在，则创建
-            os.makedirs(target_path)    
-        file_path = os.path.join(target_path, file_name) # 构建目标路径
-        shutil.copyfile(source_path, file_path)
-        msg = f"文件成功保存: {file_path}"
-        # 删除原始文件
-        os.remove(source_path)
-    else:
-        extensions_string = ", ".join(allowed_extensions)
-        msg = f"你上传的文件我将不会保存到服务器上，它只会保存在群文件里。我能为你保存这些文件类型：{extensions_string}"
-        
-     # 获取文件的当前权限
-    current_permissions = os.stat(file_path).st_mode
-    # 更改文件的权限
-    os.chmod(file_path, new_permissions)       
-    
-    return msg
+def move_file(source_path, file_name, target_path):
+    current_permissions = os.stat(source_path).st_mode # 获取文件的当前权限    
+    new_permissions = current_permissions | stat.S_IWRITE # 取消只读属性   
+    os.chmod(source_path, new_permissions) # 更改文件的权限  
+    if not os.path.exists(target_path): # 如果目标路径不存在，则创建
+        os.makedirs(target_path)    
+    file_path = os.path.join(target_path, file_name) # 构建目标路径
+    shutil.copyfile(source_path, file_path) # 复制文件、覆盖保存
+    os.remove(source_path) # 删除原始文件
+    current_permissions = os.stat(file_path).st_mode # 获取文件的当前权限
+    os.chmod(file_path, new_permissions) # 更改文件的权限   
+    # msg = f"文件成功保存: {file_path}"  
+    # return msg
+
 
 # 显示文件夹下所有文件的函数
 def get_files_in_directory(directory):
@@ -431,7 +419,9 @@ def message_action(data):
     
 
     #****************** 参数收集完毕 *************************
-
+    response_message_url = ""
+    response_message_file = ""
+    response_message_chat = ""
     
     # 如果包含URL但不包含图片，则启动URL解读
     if message_info["is_url"][0] == "yes" and message_info["is_image"][0] == "no":
@@ -453,55 +443,57 @@ def message_action(data):
                 
         except Exception as e:
             print(f"URL错误：{e}")
-        response_message = ""
+        response_message_url = ""
 
-    # 如果包含文件，则启动文件解读
+    # 如果包含文件
     if message_info["is_file"][0] != "nothing":
         source_path, file_name = message_info["is_file"]
-        # 启动文件解读
-        if user_state not in ("文档问答", "知识库问答"):  
-            # 临时文件路径
-            file_path_temp = f"{user_data_path}_chat_temp_{user_id}"
+        if check_file_extension(file_name, allowed_extensions) == True: # 如果文件扩展在允许的列表
             # 移动文件
+            file_path_temp = f"{user_data_path}_chat_temp_{user_id}" # 构建临时文件路径
             while True:
                 try:
-                    response_message = move_file(rf"{source_path}", file_name, file_path_temp, allowed_extensions) + "😊"
-                    print(f"{user_state}移动文件成功")
+                    move_file(rf"{source_path}", file_name, file_path_temp)
+                    response_message_file = f"文件保存成功：{source_path}😊"
+                    print(f"{user_state}处理文件成功")
                     break
                 except Exception as e:
                     print(e)
-                    print(f"{user_state}移动文件失败，重试中")
-                    time.sleep(1)    
-            question = "请用中文对以上内容分析，并输出一个结论"
-            # 判断操作系统类型
-            if sys.platform.startswith('win'):
-                command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
-            elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-                command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
-            # 执行命令
-            subprocess.Popen(command, shell=True)
-            response_message = ""
-        else:
-            # 移动文件
-            while True:
-                try:
-                    response_message = move_file(rf"{source_path}", file_name, message_info["embedding_data_path"], allowed_extensions) + "😊"
-                    print(f"{user_state}移动文件成功")
-                    break
-                except Exception as e:
-                    print(e)
-                    print(f"{user_state}移动文件失败，重试中")
+                    print(f"{user_state}处理文件失败，重试中")
                     time.sleep(1) 
-        asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-            
-
-
+            # 文件解读
+            if user_state not in ("文档问答", "知识库问答"):  # 如果状态非"文档问答", "知识库问答"，则则移动文件并启动文件解读
+                question = "请用中文对以上内容分析，并输出一个结论" # 提示词            
+                if sys.platform.startswith('win'): # 判断操作系统类型、打开新窗口执行命令
+                    command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
+                elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                    command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
+                subprocess.Popen(command, shell=True) # 执行命令  
+                response_message_file = ""   
+        else: # 如果文件扩展不在允许的列表、只删除文件并作提示
+            # 删除文件
+            while True:
+                try:
+                    current_permissions = os.stat(source_path).st_mode # 获取文件的当前权限    
+                    new_permissions = current_permissions | stat.S_IWRITE # 取消只读属性   
+                    os.chmod(source_path, new_permissions) # 更改文件的权限  
+                    os.remove(source_path) # 删除原始文件
+                    print(f"{user_state}删除文件成功")
+                    # 提示
+                    extensions_string = ", ".join(allowed_extensions) # 允许的文件类型
+                    response_message_file = f"你上传的文件我不会保存，我能为你保存的文件类型：{extensions_string}😊" 
+                    break
+                except Exception as e:
+                    print(e)
+                    print(f"{user_state}删除文件失败，重试中")
+                    time.sleep(1) 
+ 
     # 在允许回复的聊天类型中处理
     if message_info["chat_type"] in chat_type_allow and message_info["is_url"][0] == "no": 
         # 如果当前处于锁定状态
         if current_lock_state == 1:
             update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at)
-            response_message = ""
+            # response_message_chat = ""
         else:
             # 切换命名空间命令
             if is_name_space_command[0] == "yes":
@@ -509,7 +501,7 @@ def message_action(data):
                 name_space_command = message_info["message"].replace("::", "")
                 switch_user_name_space(user_id, source_id, name_space_command)
                 print(f"已切换到 【{name_space_command}】 命名空间")
-                response_message = f"已切换到 【{name_space_command}】 命名空间😊"
+                response_message_chat = f"已切换到 【{name_space_command}】 命名空间😊"
 
             # 其它命令和问答
             else:
@@ -521,13 +513,13 @@ def message_action(data):
                         files_str = "\n".join(all_file)  # 将文件列表转换为单一的字符串，每个文件路径占一行
                         if len(files_str) > 0:
                             if chat_type in ("group_at", "group"):
-                                response_message = "以下是你们的知识库文档：\n\n" + files_str + "\n\n如果要删除，请输使用删除命令： /删除文档|完整路径的文件名😊"
+                                response_message_chat = "以下是你们的知识库文档：\n\n" + files_str + "\n\n如果要删除，请输使用删除命令： /删除文档|完整路径的文件名😊"
                             else:
-                                response_message = "以下是你的知识库文档：\n\n" + files_str + "\n\n如果要删除，请输使用删除命令： /删除文档|完整路径的文件名😊"
+                                response_message_chat = "以下是你的知识库文档：\n\n" + files_str + "\n\n如果要删除，请输使用删除命令： /删除文档|完整路径的文件名😊"
                         else:
-                            response_message = "你还没有文档，请先给我发送你的文档。😊"
+                            response_message_chat = "你还没有文档，请先给我发送你的文档。😊"
                     except:
-                        response_message = "你还没有文档，请先给我发送你的文档。😊"
+                        response_message_chat = "你还没有文档，请先给我发送你的文档。😊"
 
                 # 命令： /删除文档 
                 elif command_name == "/删除文档":
@@ -536,11 +528,11 @@ def message_action(data):
                         file_path = command_parts[1]
                         if os.path.exists(file_path):
                             os.remove(file_path)
-                            response_message = f"文件 '{file_path}' 已成功删除。注：聊天软件里的同名文档不会被清除，请手动删除😊"
+                            response_message_chat = f"文件 '{file_path}' 已成功删除。注：聊天软件里的同名文档不会被清除，请手动删除😊"
                         else:
-                            response_message = f"文件 '{file_path}' 不存在，无法删除😊"
+                            response_message_chat = f"文件 '{file_path}' 不存在，无法删除😊"
                     except:
-                        response_message = "命令错误😊"
+                        response_message_chat = "命令错误😊"
 
                 # 命令： /邀请1 
                 elif command_name == "/邀请1":
@@ -564,14 +556,14 @@ def message_action(data):
                         else:
                             response_tag = f"【{user_id}】 邀请了你进入\n状态： 【{tag_state}】😊"
 
-                        response_message =  f"已邀请😊"
+                        response_message_chat =  f"已邀请😊"
                         # 给对方发送通知
                         try:
                             asyncio.run(answer_action(chat_type, tag_user_id, group_id, at, response_tag))
                         except:
                             pass
                     except Exception as e:
-                        response_message = f"邀请错误：{e}😊"
+                        response_message_chat = f"邀请错误：{e}😊"
 
                 # 命令： /清空文档 
                 elif command_name == "/清空文档":
@@ -579,11 +571,11 @@ def message_action(data):
                     try:
                         if os.path.exists(user_data_path):
                             shutil.rmtree(user_data_path)
-                            response_message = f"文件 '{user_data_path}' 下所有文件已成功删除。注：聊天软件里的同名文档不会被清除，请手动删除😊"
+                            response_message_chat = f"文件 '{user_data_path}' 下所有文件已成功删除。注：聊天软件里的同名文档不会被清除，请手动删除😊"
                         else:
-                            response_message = f"文件夹 '{user_data_path}' 不存在，无法删除😊"
+                            response_message_chat = f"文件夹 '{user_data_path}' 不存在，无法删除😊"
                     except:
-                        response_message = "命令错误😊"
+                        response_message_chat = "命令错误😊"
                                 
                 # 命令： /量化文档 
                 elif command_name == "/量化文档":
@@ -599,9 +591,9 @@ def message_action(data):
                         # 执行命令
                         subprocess.Popen(command, shell=True)
 
-                        response_message = "正在量化，完成后另行通知，这期间你仍然可以使用你现在的文档知识库😊"
+                        response_message_chat = "正在量化，完成后另行通知，这期间你仍然可以使用你现在的文档知识库😊"
                     except Exception as e:
-                        response_message = f"量化失败：{e}😊"
+                        response_message_chat = f"量化失败：{e}😊"
 
                 # 命令： /量化网站 
                 elif command_name == "/量化网站":
@@ -619,97 +611,97 @@ def message_action(data):
                         subprocess.Popen(command, shell=True)
                     except Exception as e:
                         print(f"URL错误：{e}")
-                    response_message = "这将需要很长、很长的时间...不过你可以问我些其它事😊"
+                    response_message_chat = "这将需要很长、很长的时间...不过你可以问我些其它事😊"
 
                 # 命令： /上传文档 
                 elif command_name == "/上传文档":
                     # 取得文件名
-                    response_message = "请直接发送文档😊"
+                    response_message_chat = "请直接发送文档😊"
 
                 # 命令： /文档问答 
                 elif command_name == "/文档问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "文档问答")
-                    response_message = "你己切换到 【文档问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/知识库问答😊"
+                    response_message_chat = "你己切换到 【文档问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/知识库问答😊"
                 
                 # 命令： /网站问答 
                 elif command_name == "/网站问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "网站问答")
-                    response_message = "你己切换到 【网站问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/知识库问答\n插件问答😊" 
+                    response_message_chat = "你己切换到 【网站问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/知识库问答\n插件问答😊" 
 
                 # 命令： /知识库问答 
                 elif command_name == "/知识库问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "知识库问答")
-                    response_message = "你己切换到 【知识库问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/网站问答\n/插件问答😊"   
+                    response_message_chat = "你己切换到 【知识库问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/网站问答\n/插件问答😊"   
 
                 # 命令： /聊天 
                 elif command_name == "/聊天":
                     # 切换到 聊天 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "聊天")
-                    response_message = "你己切换到 【聊天】 状态。其它状态命令：\n/网站问答\n/文档问答\n/知识库问答\n/插件问答😊" 
+                    response_message_chat = "你己切换到 【聊天】 状态。其它状态命令：\n/网站问答\n/文档问答\n/知识库问答\n/插件问答😊" 
 
                 # 命令： /插件问答
                 elif command_name == "/插件问答":
                     switch_user_state(user_id, source_id, "插件问答")
-                    response_message = "你己切换到 【插件问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/文档问答\n/知识库问答😊" 
+                    response_message_chat = "你己切换到 【插件问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/文档问答\n/知识库问答😊" 
 
                 # 命令： /我的状态 
                 elif command_name == "/我的状态":
                     # 从数据库中查找用户当前状态
                     user_state = get_user_state_from_db(user_id, source_id)
-                    response_message = f"【{user_state}】😊"
+                    response_message_chat = f"【{user_state}】😊"
                 
                 # 命令： /我的命名空间 
                 elif command_name == "/我的命名空间":
                     if name_space == "no":
-                        response_message = "你当前所在聊天对象中还没有插件，你可以创建插件，或用 ::命名空间 的命令切换到已有的插件命名空间😊"
+                        response_message_chat = "你当前所在聊天对象中还没有插件，你可以创建插件，或用 ::命名空间 的命令切换到已有的插件命名空间😊"
                     else:
-                        response_message = "【" + name_space + "】😊"
+                        response_message_chat = "【" + name_space + "】😊"
                 
                 # 命令： /开启群消息 
                 elif command_name == "/开启群消息":
                     try:
                         switch_allow_state(message_info["group_id"], "on")
-                        response_message = "现在不管谁说话，我都会在群里回答😊，如果嫌小的话多，你就发 /关闭群消息"
+                        response_message_chat = "现在不管谁说话，我都会在群里回答😊，如果嫌小的话多，你就发 /关闭群消息"
                     except Exception as e:
-                        response_message = f"群消息开启失败：{e}😊"
+                        response_message_chat = f"群消息开启失败：{e}😊"
 
                 # 命令： /关闭群消息 
                 elif command_name == "/关闭群消息":
                     try:
                         switch_allow_state(message_info["group_id"], "off")
-                        response_message = "好的，小的先行告退，就不插嘴各位大人的聊天了，有需要时@我😊"
+                        response_message_chat = "好的，小的先行告退，就不插嘴各位大人的聊天了，有需要时@我😊"
                     except Exception as e:
-                        response_message = f"群消息关闭失败：{e}😊"
+                        response_message_chat = f"群消息关闭失败：{e}😊"
 
                 # 命令： /清空记录 
                 elif command_name == "/清空记录":
                     try:
                         user_state = get_user_state_from_db(user_id, source_id)
                         delete_all_records(source_id, user_state, name_space)
-                        response_message = "消息已经清空😊"
+                        response_message_chat = "消息已经清空😊"
                     except Exception as e:
-                        response_message = f"消息清空失败：{e}😊"
+                        response_message_chat = f"消息清空失败：{e}😊"
                 
                 # 命令： /{自定义命令}
                 elif command_name in custom_commands_list[0]:
                     command_main = get_custom_commands_single(command_name, custom_commands_list[1])
                     print("自定义命令:",command_name)
                     do_custom_command(command_name, source_id, user_id, user_state, command_main, chat_type, group_id, at)
-                    response_message = ""
+                    response_message_chat = ""
 
                 # 和 LLM 对话
                 else:
                     # 当状态为命令等待
                     if user_state == "命令等待":
                         update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at) # 更新自定义命令
-                        response_message = ""
+                        response_message_chat = ""
                     
                     # 当状态为知识库问答
                     elif user_state == "知识库问答":
@@ -721,16 +713,13 @@ def message_action(data):
                             # 准备问题
                             query = message_info["message"]
                             # 执行问答
-                            response_message = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))
-                        else:
-                            response_message = ""
-
+                            response_message_chat = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))
 
                     # 当状态为插件问答
                     elif user_state == "插件问答":
                         query = get_response_from_plugins(name_space, message_info["post_type"], user_state, message_info)
                         # 执行问答
-                        response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
+                        response_message_chat = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
 
                     # 当状态为网站问答
                     elif user_state == "网站问答":
@@ -741,7 +730,7 @@ def message_action(data):
                         # 准备问题
                         query = message_info["message"]
                         # 执行问答
-                        response_message = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))       
+                        response_message_chat = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))       
 
                     # 文档问答。文档未经过分割向量化，直接发给LLM推理
                     elif user_state == "文档问答":
@@ -757,22 +746,33 @@ def message_action(data):
                                 command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
                             # 执行命令
                             subprocess.Popen(command, shell=True)
-                        response_message = ""
 
                     # 聊天。
                     else:
                         query = f'{message_info["message"]}'
-                        response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
-  
-                        
-    # 发送消息
-    if response_message:
+                        response_message_chat = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
+
+    if response_message_url is None:
+        response_message_url = ""   
+    if response_message_file is None:
+        response_message_file = ""
+    if response_message_chat is None:
+        response_message_chat = ""    
+             
+    print(f"response_message_url:{response_message_url}")
+    print(f"response_message_file:{response_message_file}")
+    print(f"response_message_chat:{response_message_chat}")
+    
+    response_message = response_message_url + response_message_file + response_message_chat
+    
+    if response_message == "" or response_message is None:
+        print("=" * 50, "\n",f"没有回复、无需发送消息")
+    else:
         print("=" * 50, "\n",f"答案：{response_message}") 
         try: 
             asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
         except Exception as e:
             print("=" * 50, "\n",f"发送消息错误：{e}")
-    else:
-        print("=" * 50, "\n",f"没有回复、无需发送消息")
+        
 
 
