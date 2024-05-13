@@ -71,12 +71,15 @@ def is_upload_file(bot_id, BytesExtra):
     # 匹配路径
     match = re.search(bytes(f'{bot_id}.*\\..*', 'utf-8') + b'.*', compressed_data) # 匹配 wxid_a2qwn1yzj30722 及其之后的所有字符
     if match:
-        file_path = match.group().decode()
-        filename = os.path.basename(file_path)
-        username = getpass.getuser() # 获取当前用户名
-        full_path = rf'{file_receive_path}\{file_path}' # 构建文件路径
-        full_path = os.path.normpath(full_path)  # 标准化路径，确保路径分隔符和大小写符合 Windows 的规范
-        return full_path, filename
+        try:
+            file_path = match.group().decode() # 对于图片等会出错
+            filename = os.path.basename(file_path)
+            username = getpass.getuser() # 获取当前用户名
+            full_path = rf'{file_receive_path}\{file_path}' # 构建文件路径
+            full_path = os.path.normpath(full_path)  # 标准化路径，确保路径分隔符和大小写符合 Windows 的规范
+            return full_path, filename
+        except:
+            return "nothing", "nothing"
     else:
         return "nothing", "nothing"
 \
@@ -337,8 +340,12 @@ def message_action(data):
         user_id = data["data"][0]["StrTalker"]
         source_id = data["data"][0]["StrTalker"]
         group_id = "no"
-        
+    
+    # 获取用户昵称
+    nick_name = requests.get(http_url + "/api/accountbywxid?wxid=" + user_id).json()["data"]["nickname"]
+    
     message_info["user_id"] = user_id
+    message_info["nick_name"] = nick_name
     message_info["chat_type"] = chat_type
     message_info["at"] = at
     message_info["group_id"] = group_id
@@ -752,6 +759,7 @@ def message_action(data):
                         query = f'{message_info["message"]}'
                         response_message_chat = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
 
+    # 发送消息
     if response_message_url is None:
         response_message_url = ""   
     if response_message_file is None:
@@ -773,6 +781,12 @@ def message_action(data):
             asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
         except Exception as e:
             print("=" * 50, "\n",f"发送消息错误：{e}")
+            
+    # 插入记录
+    if write_all_history == 1:
+        insert_chat_history_all_xlsx(nick_name, source_id, message_info["message"], user_state, name_space)
+            
+    
         
 
 
