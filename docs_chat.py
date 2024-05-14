@@ -32,6 +32,8 @@ group_id = str(sys.argv[5])
 at = str(sys.argv[6])
 source_id = str(sys.argv[7])
 user_state = str(sys.argv[8])
+bot_nick_name = str(sys.argv[9])
+user_nick_name = str(sys.argv[10])
 
 
 
@@ -44,6 +46,8 @@ print(f"group_id:", group_id)
 print(f"at:", at)
 print(f"source_id:", source_id)
 print(f"user_state:", user_state)
+print(f"bot_nick_name:", bot_nick_name)
+print(f"user_nick_name:", user_nick_name)
 print("*" * 40)
 
 
@@ -65,11 +69,14 @@ name_space = get_user_name_space(user_id, source_id)
 
 
 # 调用通用聊天得出答案
+# try:
+# 清除原来的聊天历史
+delete_all_records(source_id, user_state, name_space)
+query = f"{load_documents(embedding_data_path)}\n{question}"
+
+
 try:
-    # 清除原来的聊天历史
-    delete_all_records(source_id, user_state, name_space)
-    query = f"{load_documents(embedding_data_path)}\n{question}"
-    response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space)) 
+    response_message = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
     # 如果是聊天状态，问答完成立即删除文件
     if user_state == "聊天":
         shutil.rmtree(embedding_data_path)
@@ -82,9 +89,10 @@ except Exception as e:
 # 打印答案，发送消息
 print("*" * 40)
 print(f"答案： {response_message}")
-# 发送消息
 
+# 发送消息
 asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
+
 
 
 

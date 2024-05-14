@@ -306,8 +306,8 @@ def message_action(data):
     message_info["bot_id"] = bot_id
     
     # 机器人昵称
-    bot_nickname = requests.get(http_url + "/api/accountbywxid?wxid=" + bot_id).json()["data"]["nickname"]
-    message_info["bot_nickname"] = bot_nickname
+    bot_nick_name = requests.get(http_url + "/api/accountbywxid?wxid=" + bot_id).json()["data"]["nickname"]
+    message_info["bot_nick_name"] = bot_nick_name
     
     # 是否包含文件
     BytesExtra = data["data"][0]["BytesExtra"]
@@ -325,7 +325,7 @@ def message_action(data):
     
     # 判断聊天类型
     if "@chatroom" in data["data"][0]["StrTalker"]: # 群聊
-        if f"@{bot_nickname}" in data["data"][0]["StrContent"] :
+        if f"@{bot_nick_name}" in data["data"][0]["StrContent"] :
             chat_type = "group_at"
             at = "yes"
         else:
@@ -342,10 +342,10 @@ def message_action(data):
         group_id = "no"
     
     # 获取用户昵称
-    nick_name = requests.get(http_url + "/api/accountbywxid?wxid=" + user_id).json()["data"]["nickname"]
+    user_nick_name = requests.get(http_url + "/api/accountbywxid?wxid=" + user_id).json()["data"]["nickname"]
     
     message_info["user_id"] = user_id
-    message_info["nick_name"] = nick_name
+    message_info["user_nick_name"] = user_nick_name
     message_info["chat_type"] = chat_type
     message_info["at"] = at
     message_info["group_id"] = group_id
@@ -423,9 +423,10 @@ def message_action(data):
     formatted_json = json.dumps(message_info, indent=4, ensure_ascii=False)
     print(formatted_json)
     print("当前状态：", user_state)
-    
-
     #****************** 参数收集完毕 *************************
+    
+    
+    
     response_message_url = ""
     response_message_file = ""
     response_message_chat = ""
@@ -436,10 +437,10 @@ def message_action(data):
             question = "请用中文对以上内容解读，并输出一个结论"
             if sys.platform.startswith('win'):
                 # Windows 上的命令
-                command = f"start cmd /c \"conda activate wylbot && python url_chat.py {message_info['is_url'][1]} {question} {chat_type} {message_info['user_id']} {group_id} {at} {source_id} {user_state} && exit\""
+                command = f"start cmd /c \"conda activate wylbot && python url_chat.py {message_info['is_url'][1]} {question} {chat_type} {message_info['user_id']} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name} && exit\""
             elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
                 # Linux 或 macOS 上的命令
-                command = f"python url_chat.py {message_info['is_url'][1]} {question} {chat_type} {message_info['user_id']} {group_id} {at} {source_id} {user_state}; exit"
+                command = f"python url_chat.py {message_info['is_url'][1]} {question} {chat_type} {message_info['user_id']} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name}; exit"
             # 执行命令
             process = subprocess.Popen(command, shell=True)
             # 持续尝试关闭窗口
@@ -472,9 +473,9 @@ def message_action(data):
             if user_state not in ("文档问答", "知识库问答"):  # 如果状态非"文档问答", "知识库问答"，则则移动文件并启动文件解读
                 question = "请用中文对以上内容分析，并输出一个结论" # 提示词            
                 if sys.platform.startswith('win'): # 判断操作系统类型、打开新窗口执行命令
-                    command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
+                    command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name}&& exit\""
                 elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-                    command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
+                    command = f"gnome-terminal -- bash -c 'python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name}; exit'"
                 subprocess.Popen(command, shell=True) # 执行命令  
                 response_message_file = ""   
         else: # 如果文件扩展不在允许的列表、只删除文件并作提示
@@ -591,10 +592,10 @@ def message_action(data):
                         # 判断操作系统类型
                         if sys.platform.startswith('win'):
                             # Windows 上的命令
-                            command = f"start cmd /c \"conda activate wylbot && python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} && exit\""
+                            command = f"start cmd /c \"conda activate wylbot && python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {bot_nick_name} {user_nick_name} && exit\""
                         elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
                             # Linux 或 macOS 上的命令
-                            command = f"gnome-terminal -- bash -c 'python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type}; exit'"   
+                            command = f"gnome-terminal -- bash -c 'python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {bot_nick_name} {user_nick_name}; exit'"   
                         # 执行命令
                         subprocess.Popen(command, shell=True)
 
@@ -610,10 +611,10 @@ def message_action(data):
                         # 判断操作系统类型
                         if sys.platform.startswith('win'):
                             # Windows 上的命令
-                            command = f"start cmd /c \"conda activate wylbot && python new_embedding.py {embedding_data_path} {embedding_db_path_site} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {site_url} && exit\""
+                            command = f"start cmd /c \"conda activate wylbot && python new_embedding.py {embedding_data_path} {embedding_db_path_site} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {bot_nick_name} {user_nick_name} {site_url} && exit\""
                         elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
                             # Linux 或 macOS 上的命令
-                            command = f"gnome-terminal -- bash -c 'python new_embedding.py {embedding_data_path} {embedding_db_path_site} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {site_url}; exit'"
+                            command = f"gnome-terminal -- bash -c 'python new_embedding.py {embedding_data_path} {embedding_db_path_site} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {site_url} {bot_nick_name} {user_nick_name} {site_url} ; exit'"
                         # 执行命令
                         subprocess.Popen(command, shell=True)
                     except Exception as e:
@@ -726,7 +727,7 @@ def message_action(data):
                     elif user_state == "插件问答":
                         query = get_response_from_plugins(name_space, message_info["post_type"], user_state, message_info)
                         # 执行问答
-                        response_message_chat = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
+                        response_message_chat = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
 
                     # 当状态为网站问答
                     elif user_state == "网站问答":
@@ -737,7 +738,7 @@ def message_action(data):
                         # 准备问题
                         query = message_info["message"]
                         # 执行问答
-                        response_message_chat = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))       
+                        response_message_chat = asyncio.run(run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, user_state, name_space))       
 
                     # 文档问答。文档未经过分割向量化，直接发给LLM推理
                     elif user_state == "文档问答":
@@ -747,17 +748,17 @@ def message_action(data):
                             # 新开窗口执行问答
                             if sys.platform.startswith('win'):
                             # Windows 上的命令
-                                command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} && exit\""
+                                command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name} && exit\""
                             elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
                                 # Linux 或 macOS 上的命令
-                                command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state}; exit'"
+                                command = f"gnome-terminal -- bash -c 'python docs_chat.py {embedding_data_path} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name}; exit'"
                             # 执行命令
                             subprocess.Popen(command, shell=True)
 
                     # 聊天。
                     else:
                         query = f'{message_info["message"]}'
-                        response_message_chat = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
+                        response_message_chat = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
 
     # 发送消息
     if response_message_url is None:
@@ -784,7 +785,7 @@ def message_action(data):
             
     # 插入记录
     if write_all_history == 1:
-        insert_chat_history_all_xlsx(nick_name, source_id, message_info["message"], user_state, name_space)
+        insert_chat_history_all_xlsx(user_nick_name, source_id, message_info["message"], user_state, name_space)
             
     
         

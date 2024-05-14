@@ -39,6 +39,8 @@ group_id = str(sys.argv[5])
 at = str(sys.argv[6])
 source_id = str(sys.argv[7])
 user_state = str(sys.argv[8])
+bot_nick_name = str(sys.argv[9])
+user_nick_name = str(sys.argv[10])
 
 print("*" * 40)
 print("decode_urls:", decode_urls)
@@ -49,6 +51,8 @@ print("group_id:", group_id)
 print("at:", at)
 print("source_id:", source_id)
 print("user_state:", user_state)
+print("bot_nick_name:", bot_nick_name)
+print("user_nick_name:", user_nick_name)
 print("*" * 40)
 
 
@@ -179,7 +183,7 @@ try:
     print(loader)
 except Exception as e:
     print(f"错误：{e}")
-    time.sleep(1000000)
+
 
 
 name_space = get_user_name_space(user_id, source_id)
@@ -191,7 +195,7 @@ try:
     # 清除原来的聊天历史
     delete_all_records(source_id, user_state, name_space)
     query = f"{loader}\n{question}"
-    response_message = asyncio.run(chat_generic_langchain(source_id, query, user_state, name_space))
+    response_message = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
 except Exception as e:
     response_message = f"错误：{e}😊"
 

@@ -48,11 +48,14 @@ user_id = str(sys.argv[5])
 group_id = str(sys.argv[6])
 at = str(sys.argv[7])
 embedding_type = str(sys.argv[8])
+bot_nick_name = str(sys.argv[9])
+user_nick_name = str(sys.argv[10])
 try:
-    site_url = str(sys.argv[9])
+    site_url = str(sys.argv[11])
     site_url = json.loads(base64.b64decode(site_url).decode())
 except:
     site_url = False
+
 
 
 # 打印参数
@@ -65,6 +68,8 @@ print("user_id:",user_id)
 print("group_id:",group_id)
 print("at:",at)
 print("embedding_type:",embedding_type)
+print("bot_nick_name:",bot_nick_name)
+print("user_nick_name:",user_nick_name)
 print("site_url:",site_url)
 print("*" * 40)
 

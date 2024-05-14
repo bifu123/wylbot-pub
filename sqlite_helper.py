@@ -61,8 +61,8 @@ def create_tables(connection):
     cursor.execute('''CREATE TABLE IF NOT EXISTS history_now (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         source_id TEXT NOT NULL,
-                        query TEXT NOT NULL,
-                        answer TEXT NOT NULL,
+                        user TEXT NOT NULL,
+                        content TEXT NOT NULL,
                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         user_state TEXT DEFAULT '聊天',
                         name_space TEXT
@@ -395,46 +395,46 @@ def get_path_by_source_id_site(source_id):
         else:
             return None
 
-def insert_chat_history(source_id, query, answer, user_state, name_space=""):
+def insert_chat_history(source_id, user, content, user_state, name_space=""):
     # 插入当前聊天历史记录
     with db_lock:
         conn = get_database_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO history_now (source_id, query, answer, user_state, name_space) VALUES (?, ?, ?, ?, ?)", (source_id, query, answer, user_state, name_space))
+        cursor.execute("INSERT INTO history_now (source_id, user, content, user_state, name_space) VALUES (?, ?, ?, ?, ?)", (source_id, user, content, user_state, name_space))
         conn.commit()
 
 # 写入与机器人聊天的记录
-def insert_chat_history_xlsx(source_id, query, answer,user_state="聊天", name_space="test"):
+def insert_chat_history_xlsx(source_id, user, content,user_state="聊天", name_space="test"):
     # 检查文件是否存在
     filename = 'chat_with_bot_history.xlsx'
     if not os.path.isfile(filename):
         # 如果文件不存在，创建新文件并写入表头
         wb = Workbook()
         ws = wb.active
-        ws.append(["source_id", "query", "answer", "create_time", "user_state", "name_space"])
+        ws.append(["source_id", "user", "content", "create_time", "user_state", "name_space"])
         wb.save(filename)
 
     # 打开工作簿并插入新记录
     wb = load_workbook(filename)
     ws = wb.active
-    ws.append([source_id, query, answer, datetime.now(), user_state, name_space])
+    ws.append([source_id, user, content, datetime.now(), user_state, name_space])
     wb.save(filename)
     
 # 写入所有聊天的记录
-def insert_chat_history_all_xlsx(nike_name, source_id, massage, user_state="聊天", name_space="test"):
+def insert_chat_history_all_xlsx(source_id, user, content, user_state="聊天", name_space="test"):
     # 检查文件是否存在
     filename = 'chat_all_history.xlsx'
     if not os.path.isfile(filename):
         # 如果文件不存在，创建新文件并写入表头
         wb = Workbook()
         ws = wb.active
-        ws.append(["nike_name","source_id", "massage", "create_time", "user_state", "name_space"])
+        ws.append(["source_id", "user", "content", "create_time", "user_state", "name_space"])
         wb.save(filename)
 
     # 打开工作簿并插入新记录
     wb = load_workbook(filename)
     ws = wb.active
-    ws.append([nike_name, source_id, massage,  datetime.now(), user_state, name_space])
+    ws.append([user, source_id, content,  datetime.now(), user_state, name_space])
     wb.save(filename)
 
 def delete_oldest_records(source_id, user_state, name_space=""):
@@ -468,7 +468,7 @@ def fetch_chat_history(source_id, user_state, name_space):
         conn = get_database_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT query, answer FROM history_now WHERE source_id = ? and user_state = ? and name_space = ? ORDER BY timestamp", (source_id, user_state, name_space))
+            cursor.execute("SELECT user, content FROM history_now WHERE source_id = ? and user_state = ? and name_space = ? ORDER BY timestamp", (source_id, user_state, name_space))
             return cursor.fetchall()
         except:
             return []

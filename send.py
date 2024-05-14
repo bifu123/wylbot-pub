@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 import requests
-from config import http_url, chat_type_allow
+from config import http_url, chat_type_allow, admin_wxid
 
 
 # 根据聊天类型发送消息的异步函数
@@ -11,10 +11,10 @@ async def answer_action(chat_type, user_id, group_id, at, response_message):
     
     # 群中@
     if chat_type == "group_at": 
-        nickname = requests.get(http_url + "/api/accountbywxid?wxid=" + user_id).json()["data"]["nickname"]
+        nick_name = requests.get(http_url + "/api/accountbywxid?wxid=" + user_id).json()["data"]["nickname"]
         params = {
             "wxid": group_id,
-            "content": f"@{nickname} {response_message}", 
+            "content": f"@{nick_name} {response_message}", 
             "atlist": [user_id]
         }  
         
