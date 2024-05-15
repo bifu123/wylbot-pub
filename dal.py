@@ -481,11 +481,14 @@ def message_action(data):
         source_path, file_name = message_info["is_file"]
         if check_file_extension(file_name, allowed_extensions) == True: # 如果文件扩展在允许的列表
             # 移动文件
-            file_path_temp = f"{user_data_path}_chat_temp_{user_id}" # 构建临时文件路径
+            if user_state not in ("文档问答", "知识库问答"):
+                file_path_temp = f"{user_data_path}_chat_temp_{user_id}" # 构建临时文件路径
+            else:
+                file_path_temp = os.path.join(user_data_path, user_id) # 构建临时文件路径 os.path.join(user_data_path, user_id)
             while True:
                 try:
                     move_file(rf"{source_path}", file_name, file_path_temp)
-                    response_message_file = f"文件保存成功：{source_path}😊"
+                    response_message_file = f"文件保存成功：{file_path_temp}😊"
                     print(f"{user_state}处理文件成功")
                     break
                 except Exception as e:

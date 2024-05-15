@@ -218,7 +218,6 @@ def get_loads_from_dir(new_embedding_db_path):
 
 
 ####################### 执行过程
-# 确定量化存储路径
 # 删除旧向量存储文件夹
 if os.path.exists(embedding_db_path) and os.path.isdir(embedding_db_path):
     try:
@@ -244,7 +243,7 @@ else:
     update_db_path(source_id, new_embedding_db_path)
 
 
-
+response_message = ""
 
 # 根据传参决定加载器来加载文档
 if embedding_type == "site":
@@ -261,10 +260,9 @@ elif embedding_type == "file":
     try:
         loaders = get_loads_from_dir(embedding_data_path)
     except Exception as e:
-        print(f"get_loads_from_dir出错：{e}")
-        #time.sleep(1000000)
+        response_message = f"get_loads_from_dir出错：{e}"
 print(loaders)
-#time.sleep(1000000)
+
 
 
 # 分割文档
@@ -285,8 +283,4 @@ response_message = f"量化执行结束，已迁移至新知识库：{new_embedd
 
 # 发送消息
 asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-
-
-# time.sleep(1000000)
-# input("Press Enter to exit...")
 
