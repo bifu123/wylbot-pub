@@ -526,7 +526,7 @@ def message_action(data):
     if message_info["chat_type"] in chat_type_allow and message_info["is_url"][0] == "no": 
         # 如果当前处于锁定状态
         if current_lock_state == 1:
-            update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at)
+            update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at, message_info)
             # response_message_chat = ""
         else:
             # 切换命名空间命令
@@ -727,14 +727,14 @@ def message_action(data):
                 elif command_name in custom_commands_list[0]:
                     command_main = get_custom_commands_single(command_name, custom_commands_list[1])
                     print("自定义命令:",command_name)
-                    do_custom_command(command_name, source_id, user_id, user_state, command_main, chat_type, group_id, at)
+                    do_custom_command(command_name, source_id, user_id, user_state, command_main, chat_type, group_id, at, message_info)
                     response_message_chat = ""
 
                 # 和 LLM 对话
                 else:
                     # 当状态为命令等待
                     if user_state == "命令等待":
-                        update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at) # 更新自定义命令
+                        update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at, message_info) # 更新自定义命令
                         response_message_chat = ""
                     
                     # 当状态为知识库问答
@@ -747,7 +747,7 @@ def message_action(data):
                             # 准备问题
                             query = message_info["message"]
                             # 执行问答
-                            response_message_chat = asyncio.run(run_chain(retriever, source_id, query, user_state, name_space))
+                            response_message_chat = asyncio.run(run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, user_state, name_space))
 
                     # 当状态为插件问答
                     elif user_state == "插件问答":
