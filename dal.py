@@ -82,7 +82,7 @@ def is_upload_file(bot_id, BytesExtra):
             return "nothing", "nothing"
     else:
         return "nothing", "nothing"
-\
+
 # 检查文件的函数
 def check_file_extension(file_name, allowed_extensions):
     file_ext = file_name[file_name.rfind("."):].lower()
@@ -774,18 +774,24 @@ def message_action(data):
     
     response_message = response_message_url + response_message_file + response_message_chat
     
+    # 插入记录
+    if write_all_history == 1:
+        insert_chat_history_all_xlsx(user_nick_name, source_id, data["data"][0]["StrContent"], user_state, name_space)
+    
     if response_message == "" or response_message is None:
         print("=" * 50, "\n",f"没有回复、无需发送消息")
     else:
         print("=" * 50, "\n",f"答案：{response_message}") 
         try: 
             asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
+            # 插入记录
+            if write_all_history == 1:
+                insert_chat_history_all_xlsx(bot_nick_name, source_id, response_message, user_state, name_space)
         except Exception as e:
             print("=" * 50, "\n",f"发送消息错误：{e}")
             
-    # 插入记录
-    if write_all_history == 1:
-        insert_chat_history_all_xlsx(user_nick_name, source_id, message_info["message"], user_state, name_space)
+    
+        
             
     
         
