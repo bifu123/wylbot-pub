@@ -138,7 +138,7 @@ def get_models_on_request():
         llm_rag = llm_groq
     else:
         llm_rag = llm_chatGLM
-    llm_rag.temperature = 0.0
+    # llm_rag.temperature = 0.0
     return embedding, llm, llm_rag, must_use_llm_rag
     
 ############################# 模型方法 #################################
