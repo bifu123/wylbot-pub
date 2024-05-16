@@ -124,8 +124,6 @@ def move_file(source_path, file_name, target_path):
     os.remove(source_path) # 删除原始文件
     current_permissions = os.stat(file_path).st_mode # 获取文件的当前权限
     os.chmod(file_path, new_permissions) # 更改文件的权限   
-    # msg = f"文件成功保存: {file_path}"  
-    # return msg
 
 
 # 显示文件夹下所有文件的函数
@@ -480,6 +478,7 @@ def message_action(data):
     if message_info["is_file"][0] != "nothing":
         source_path, file_name = message_info["is_file"]
         if check_file_extension(file_name, allowed_extensions) == True: # 如果文件扩展在允许的列表
+            print(f"check_file_extension(file_name, allowed_extensions): {check_file_extension(file_name, allowed_extensions)}")
             # 移动文件
             if user_state not in ("文档问答", "知识库问答"):
                 file_path_temp = f"{user_data_path}_chat_temp_{user_id}" # 构建临时文件路径
@@ -520,6 +519,8 @@ def message_action(data):
                 except Exception as e:
                     print(e)
                     print(f"{user_state}删除文件失败，重试中")
+                    if "文件名、目录名或卷标语法不正确" in str(e):
+                        break
                     time.sleep(1) 
  
     # 在允许回复的聊天类型中处理
