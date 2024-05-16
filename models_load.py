@@ -38,6 +38,9 @@ from langchain_community.llms.moonshot import Moonshot
 # groq api 模型
 from langchain_groq import ChatGroq
 
+# chatGLM3-6B 模型
+from langchain_community.llms.chatglm3 import ChatGLM3
+
 # 异步函数
 import asyncio
 
@@ -88,6 +91,12 @@ llm_kimi = Moonshot(
 llm_groq = ChatGroq(
     model_name = llm_groq_conf["model_name"],
     temperature = llm_groq_conf["temperature"]
+)
+# 本地语言模型 ChatGLM3
+llm_chatGLM = ChatGLM3(
+    endpoint_url = llm_chatGLM_conf["endpoint_url"],
+    max_tokens = llm_chatGLM_conf["max_tokens"],
+    top_p = llm_chatGLM_conf["top_p"]
 ) 
 
 
@@ -129,7 +138,7 @@ def get_models_on_request():
         llm_rag = llm_groq
     else:
         llm_rag = llm_chatGLM
-        
+    llm_rag.temperature = 0.0
     return embedding, llm, llm_rag, must_use_llm_rag
     
 ############################# 模型方法 #################################
@@ -185,13 +194,15 @@ async def do_chat_history(chat_history, source_id, user, content, user_state, na
 # 向量检索聊天（执行向量链）
 async def run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, user_state="聊天", name_space="test"):
     embedding, llm, llm_rag, must_use_llm_rag = get_models_on_request()
+
     if query !="" and query is not None:
         print("=" * 50)
         print("当前使用的知识库LLM：", llm_rag)
-        template_cn = """请根据上下文和对话历史记录用简体中文完整地回答问题 Please answer in Simplified Chinese:
+        template_cn = """请根据文档内容和聊天历史记录用简体中文完整地回答问题，Please answer in Simplified Chinese:
         {context}
         {question}
         """
+        
         
 
         # 处理聊天记录
@@ -205,13 +216,17 @@ async def run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, 
         while history_size_now > chat_history_size_set:
             if history_size_now > chat_history_size_set:
                 delete_oldest_records(source_id, user_state, name_space) # 删除数据库中时间最旧的1条记录
-                if chat_history:
-                    data.pop(0) # 删除chat_history中时间最旧的1条记录
-                    chat_history = format_history(bot_nick_name, data)
-                    history_size_now = sys.getsizeof(f"{chat_history}") + sys.getsizeof(f"{query}")
-                    print("历史记录及问题字节之和超过预定值，删除时间最旧的1条记录")
-                else:
-                    print("聊天记录为空，无需删除")
+                try:
+                    if chat_history and len(chat_history) > 1:
+                        data.pop(0) # 删除chat_history中时间最旧的1条记录
+                        chat_history = format_history(bot_nick_name, data)
+                        history_size_now = sys.getsizeof(f"{chat_history}") + sys.getsizeof(f"{query}")
+                        print("历史记录及问题字节之和超过预定值，删除时间最旧的1条记录")
+                    else:
+                        print("聊天记录为空，无需删除")
+                        break
+                except Exception as e:
+                    print(f"删除时间最旧的1条记录时出错：{e}")
                     break
             else:
                 break  # 如果条件不再满足，则跳出循环
@@ -219,10 +234,10 @@ async def run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, 
             
         # 由模板生成prompt
         prompt = ChatPromptTemplate.from_template(template_cn) 
-        
+
         # 创建chain
         chain = RunnableMap({
-            "context": lambda x: retriever.get_relevant_documents(x["question"]),
+            "context": lambda x: retriever.get_relevant_documents(x),
             "question": RunnablePassthrough(),
             "chat_history": lambda x: chat_history  # 使用历史记录的步骤
         }) | prompt | llm_rag | StrOutputParser()
@@ -256,7 +271,7 @@ async def chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query
         while history_size_now > chat_history_size_set:
             if history_size_now > chat_history_size_set:
                 delete_oldest_records(source_id, user_state, name_space) # 删除数据库中时间最旧的1条记录
-                if chat_history:
+                if chat_history and len(chat_history) > 1:
                     data.pop(0) # 删除chat_history中时间最旧的1条记录
                     chat_history = format_history(bot_nick_name, data)
                     history_size_now = sys.getsizeof(f"{chat_history}") + sys.getsizeof(f"{query}")
