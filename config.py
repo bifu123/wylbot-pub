@@ -47,6 +47,8 @@ GOOGLE_API_KEY = "your GOOGLE_API_KEY" #gemini api key的申请地址：https://
 DASHSCOPE_API_KEY  = "your DASHSCOPE_API_KEY" # 通义千问 api key
 MOONSHOT_API_KEY = "your MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
 GROQ_API_KEY = "your GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
+# cohere 重排模型 API KEY
+COHERE_API_KEY = "your COHERE_API_KEY" # 申请地址：https://dashboard.cohere.com/api-keys
 
 
 
@@ -116,6 +118,9 @@ must_use_llm_rag = 0 # 1 | 0 # 当文档较大时，建议设置为1。因为在
 
 # 是否记录所有消息
 write_all_history = 1 # 1 | 0 
+
+# 是否使用重排向量模型
+must_rerank_embedding = 1 # 0 | 1 
 
 
 
