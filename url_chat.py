@@ -194,7 +194,16 @@ name_space = get_user_name_space(user_id, source_id)
 try:
     # 清除原来的聊天历史
     delete_all_records(source_id, user_state, name_space)
+    
     query = f"{loader}\n{question}"
+
+    # 插入记录
+    if chat_type == "group_at":
+        query_message_insert = "@" + bot_nick_name + " " + query
+    else:
+        query_message_insert = query
+    do_chat_history(query_message_insert, source_id, bot_nick_name, query_message_insert, user_state, name_space)
+    
     response_message = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
 except Exception as e:
     response_message = f"错误：{e}😊"
@@ -205,7 +214,12 @@ print("*" * 40)
 print(f"答案： {response_message}")
 # 发送消息
 asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-
+# 插入记录
+if chat_type == "group_at":
+    response_message_insert = "@" + user_nick_name + " " + response_message
+else:
+    response_message_insert = response_message
+    do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space)
 
 
 

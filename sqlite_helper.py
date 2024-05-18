@@ -403,10 +403,10 @@ def insert_chat_history(source_id, user, content, user_state, name_space=""):
         cursor.execute("INSERT INTO history_now (source_id, user, content, user_state, name_space) VALUES (?, ?, ?, ?, ?)", (source_id, user, content, user_state, name_space))
         conn.commit()
 
-# 写入与机器人聊天的记录
-def insert_chat_history_xlsx(source_id, user, content,user_state="聊天", name_space="test"):
+# 写入聊天的记录到EXCEL
+def insert_chat_history_to_excel(source_id, user, content,user_state="聊天", name_space="test"):
     # 检查文件是否存在
-    filename = 'chat_with_bot_history.xlsx'
+    filename = 'history.xlsx'
     if not os.path.isfile(filename):
         # 如果文件不存在，创建新文件并写入表头
         wb = Workbook()
@@ -420,28 +420,6 @@ def insert_chat_history_xlsx(source_id, user, content,user_state="聊天", name_
     ws.append([source_id, user, content, datetime.now(), user_state, name_space])
     wb.save(filename)
     
-# 写入所有聊天的记录
-def insert_chat_history_all_xlsx(source_id, user, content, user_state="聊天", name_space="test"):
-    if content != "" and content is not None:
-        # 检查文件是否存在
-        filename = 'chat_all_history.xlsx'
-        if not os.path.isfile(filename):
-            # 如果文件不存在，创建新文件并写入表头
-            wb = Workbook()
-            ws = wb.active
-            ws.append(["source_id", "user", "content", "create_time", "user_state", "name_space"])
-            wb.save(filename)
-
-        # 打开工作簿并插入新记录
-        wb = load_workbook(filename)
-        ws = wb.active
-        ws.append([user, source_id, content,  datetime.now(), user_state, name_space])
-        wb.save(filename)
-    #     print("insert_chat_history_all_xlsx写入记录")
-    else:
-        # print("内容为空，insert_chat_history_all_xlsx放弃写入")
-        pass
-
 def delete_oldest_records(source_id, user_state, name_space=""):
     # 从当前聊天历史记录表中删除时间最晚的1条记录
     with db_lock:

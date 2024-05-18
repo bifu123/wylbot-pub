@@ -483,7 +483,7 @@ def message_action(data):
             if user_state not in ("文档问答", "知识库问答"):
                 file_path_temp = f"{user_data_path}_chat_temp_{user_id}" # 构建临时文件路径
             else:
-                file_path_temp = os.path.join(user_data_path, user_id) # 构建临时文件路径 os.path.join(user_data_path, user_id)
+                file_path_temp = user_data_path # 构建临时文件路径 os.path.join(user_data_path, user_id)
             while True:
                 try:
                     move_file(rf"{source_path}", file_name, file_path_temp)
@@ -801,19 +801,22 @@ def message_action(data):
     
     response_message = response_message_url + response_message_file + response_message_chat
     
-    # 插入记录
-    if write_all_history == 1:
-        insert_chat_history_all_xlsx(user_nick_name, source_id, data["data"][0]["StrContent"], user_state, name_space)
+    # 插入聊天请求记录
+    do_chat_history(data["data"][0]["StrContent"], source_id, user_nick_name, data["data"][0]["StrContent"], user_state, name_space)
     
     if response_message == "" or response_message is None:
         print("=" * 50, "\n",f"没有回复、无需发送消息")
     else:
         print("=" * 50, "\n",f"答案：{response_message}") 
         try: 
-            asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
             # 插入记录
-            if write_all_history == 1:
-                insert_chat_history_all_xlsx(bot_nick_name, source_id, response_message, user_state, name_space)
+            if chat_type == "group_at":
+                response_message_insert = "@" + user_nick_name + " " + response_message
+            else:
+                response_message_insert = response_message
+            do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space)
+            # 发送消息
+            asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
         except Exception as e:
             print("=" * 50, "\n",f"发送消息错误：{e}")
             

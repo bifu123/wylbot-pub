@@ -186,14 +186,14 @@ def format_history(bot_nick_name, history):
  
 
 # 处理聊天记录
-async def do_chat_history(chat_history, source_id, user, content, user_state, name_space):
+def do_chat_history(chat_history, source_id, user, content, user_state, name_space):
     history_size_now = sys.getsizeof(f"{chat_history}")
     # 如果超过预定字节大小就放弃写入
     if not history_size_now > chat_history_size_set:
         # 插入当前数据表 source_id、query、result
-        insert_chat_history(source_id, user, content, user_state, name_space)
+        insert_chat_history(source_id, user, content.replace("😊", ""), user_state, name_space)
         # 将聊天记录入旧归档记录表history_old.xlsx表中
-        insert_chat_history_xlsx(source_id, user, content, user_state, name_space)
+        insert_chat_history_to_excel(source_id, user, content.replace("😊", ""), user_state, name_space)
     else:
         print("记录过大，放弃写入")
 
@@ -263,8 +263,8 @@ async def run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, 
         try:
             response_message = chain.invoke(request)
             # 处理聊天记录 
-            await do_chat_history(chat_history, source_id, user_nick_name, query, user_state, name_space)
-            await do_chat_history(chat_history, source_id, bot_nick_name, response_message, user_state, name_space)
+            # await do_chat_history(chat_history, source_id, user_nick_name, query, user_state, name_space)
+            # do_chat_history(chat_history, source_id, bot_nick_name, response_message, user_state, name_space)
         except Exception as e:
             response_message = f"LLM响应错误: {e}"
             print(f"LLM响应错误: {e}")
@@ -326,8 +326,8 @@ async def chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query
         try:
             response_message = chain.invoke(request)
             # 处理聊天记录 
-            await do_chat_history(chat_history, source_id, user_nick_name, query, user_state, name_space)
-            await do_chat_history(chat_history, source_id, bot_nick_name, response_message, user_state, name_space)
+            # await do_chat_history(chat_history, source_id, user_nick_name, query, user_state, name_space)
+            # do_chat_history(chat_history, source_id, bot_nick_name, response_message, user_state, name_space)
         except Exception as e:
             response_message = f"LLM响应错误: {e}"
             print(f"LLM响应错误: {e}")
