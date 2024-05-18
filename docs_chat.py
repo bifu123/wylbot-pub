@@ -68,10 +68,10 @@ def load_documents(data_path):
 name_space = get_user_name_space(user_id, source_id)
 
 
-# 调用通用聊天得出答案
-# try:
+
 # 清除原来的聊天历史
-delete_all_records(source_id, user_state, name_space)
+# delete_all_records(source_id, user_state, name_space)
+
 query = f"{load_documents(embedding_data_path)}\n{question}"
 
 # 插入记录

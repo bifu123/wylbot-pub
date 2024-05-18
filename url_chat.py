@@ -192,8 +192,8 @@ name_space = get_user_name_space(user_id, source_id)
 
 # 调用通用聊天得出答案
 try:
-    # 清除原来的聊天历史
-    delete_all_records(source_id, user_state, name_space)
+    # # 清除原来的聊天历史
+    # delete_all_records(source_id, user_state, name_space)
     
     query = f"{loader}\n{question}"
 
