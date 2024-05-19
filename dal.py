@@ -236,13 +236,14 @@ def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, sou
                 if function_type == "serial" and post_type == post_type_p and user_state == user_state_p and name_space == name_space_p:
                     if source_id in role or role == []:
                         if result_serial is None:
-                            # 如果result为None，则根据函数参数类型设定初始值
-                            if 'dict' in str(function.__annotations__.values()):
-                                result_serial = {}
-                            elif 'str' in str(function.__annotations__.values()):
-                                result_serial = ''
+                            result_serial = data
+                            # # 如果result为None，则根据函数参数类型设定初始值
+                            # if 'dict' in str(function.__annotations__.values()):
+                            #     result_serial = data
+                            # elif 'str' in str(function.__annotations__.values()):
+                            #     result_serial = ''
                             # 可以根据其他可能的参数类型继续添加条件
-                        result_serial = function(data=result_serial)  # 将data作为参数传递给函数
+                        result_serial = function(result_serial)
                         # 如果block=True，则结束循环，不再执行后续函数
                         if getattr(function, '_block', True):
                             break
@@ -268,7 +269,7 @@ def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, sou
         query = f"{result}" + f"\n{message}"
     else:
         # 准备问题（将从插件获取的结果与当前问题拼接成上下文供LLM推理)
-        query = f'请这样对我说："没有权限访问命名空间：{name_space_p}"，不要添加你的任何理解和推理'
+        query = """请输出：\n你没有权限访问命名空间：%s\n- 不要添加你的任何理解和推理\n- 不要添加任何其它的标点符号和空格\n- 不要添加""和''""" % name_space_p
     # 输出结果
     print("=" * 50)
     print(f"插件请求结果：\n\n{query}\n")
