@@ -5,6 +5,7 @@ import shutil
 import requests
 import json
 import time
+import base64
 
 # 文档加工
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredWordDocumentLoader, UnstructuredHTMLLoader, UnstructuredMarkdownLoader, PythonLoader 
@@ -25,7 +26,8 @@ print(f"接收到的参数：{sys.argv}")
 # time.sleep(10000)
 
 embedding_data_path = sys.argv[1]
-question = sys.argv[2]
+# question = sys.argv[2]
+question = json.loads(base64.b64decode(sys.argv[2]).decode())
 chat_type = str(sys.argv[3])
 user_id = str(sys.argv[4])
 group_id = str(sys.argv[5])

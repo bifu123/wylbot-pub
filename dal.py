@@ -497,7 +497,9 @@ def message_action(data):
                     time.sleep(1) 
             # 文件解读
             if user_state not in ("文档问答", "知识库问答"):  # 如果状态非"文档问答", "知识库问答"，则则移动文件并启动文件解读
-                question = "请用中文对以上内容分析，并输出一个结论" # 提示词            
+                # question = "请用中文对以上内容分析，并输出一个结论" # 提示词  
+                question = base64.b64encode(json.dumps("请用中文对以上内容分析，并输出一个结论").encode()).decode()    
+                       
                 if sys.platform.startswith('win'): # 判断操作系统类型、打开新窗口执行命令
                     command = f"start cmd /c \"conda activate wylbot && python docs_chat.py {file_path_temp} {question} {chat_type} {user_id} {group_id} {at} {source_id} {user_state} {bot_nick_name} {user_nick_name}&& exit\""
                 elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
@@ -771,8 +773,9 @@ def message_action(data):
                     # 文档问答。文档未经过分割向量化，直接发给LLM推理
                     elif user_state == "文档问答":
                         if message_info["is_file"][0] == "nothing":
-                            # 准备问题
-                            question = message_info["message"]
+                            # # 准备问题
+                            # question = message_info["message"]
+                            question = base64.b64encode(json.dumps(data["data"][0]["StrContent"]).encode()).decode() 
                             # 新开窗口执行问答
                             if sys.platform.startswith('win'):
                             # Windows 上的命令
