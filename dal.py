@@ -269,7 +269,8 @@ def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, sou
         query = f"{result}" + f"\n{message}"
     else:
         # 准备问题（将从插件获取的结果与当前问题拼接成上下文供LLM推理)
-        query = """请输出：\n你没有权限访问命名空间：%s\n- 不要添加你的任何理解和推理\n- 不要添加任何其它的标点符号和空格\n- 不要添加""和''""" % name_space_p
+        # query = """请输出：\n你没有权限访问命名空间：%s\n- 不要添加你的任何理解和推理\n- 不要添加任何其它的标点符号和空格\n- 不要添加""和''""" % name_space_p
+        query = message
     # 输出结果
     print("=" * 50)
     print(f"插件请求结果：\n\n{query}\n")
@@ -736,6 +737,9 @@ def message_action(data):
 
                 # 和 LLM 对话
                 else:
+                    # 加载插件、拼合请求
+                    query = get_response_from_plugins(name_space, message_info["post_type"], user_state, message_info, source_id)
+                    
                     # 当状态为命令等待
                     if user_state == "命令等待":
                         update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at, message_info) # 更新自定义命令
@@ -755,7 +759,7 @@ def message_action(data):
 
                     # 当状态为插件问答
                     elif user_state == "插件问答":
-                        query = get_response_from_plugins(name_space, message_info["post_type"], user_state, message_info, source_id)
+                        # query = get_response_from_plugins(name_space, message_info["post_type"], user_state, message_info, source_id)
                         # 执行问答
                         response_message_chat = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
 
