@@ -109,7 +109,8 @@ def download_file(url: str, file_name: str, download_path: str, allowed_extensio
             msg = f"文件上传失败： {response.status_code}"
     else:
         extensions_string = ", ".join(allowed_extensions)
-        msg = f"你上传的文件我将不会保存到服务器上，它只会保存在群文件里。我能为你保存这些文件类型：{extensions_string}"
+        # msg = f"你上传的文件我将不会保存到服务器上，它只会保存在群文件里。我能为你保存这些文件类型：{extensions_string}"
+        msg = ""
     return msg
 
 # 定义移动文件的函数
@@ -186,7 +187,7 @@ def get_name_space(text):
         return "no", "nothing"
 
 # 加载插件、构建query的函数
-def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, source_id):
+def get_response_from_plugins(name_space_p, post_type_p, user_state_p:list, data, source_id):
     # 存储每个函数的结果
     try:
         message = data["message"]
@@ -233,7 +234,7 @@ def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, sou
             # 依次执行函数
             for function, name_space, priority, function_type, post_type, user_state, role, block in functions_with_priority:
                 # 判断function_type、post_type和user_state是否满足特定条件
-                if function_type == "serial" and post_type == post_type_p and user_state == user_state_p and name_space == name_space_p:
+                if function_type == "serial" and post_type == post_type_p and user_state_p[0] in user_state and name_space == name_space_p:
                     if source_id in role or role == []:
                         if result_serial is None:
                             result_serial = data
@@ -248,7 +249,7 @@ def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, sou
                         if getattr(function, '_block', True):
                             break
 
-                elif function_type == "parallel" and post_type == post_type_p and user_state == user_state_p and name_space == name_space_p:
+                elif function_type == "parallel" and post_type == post_type_p and user_state_p[0] in user_state and name_space == name_space_p:
                     if source_id in role or role == []:
                         result_parallel += f"{function(data)}"
                         result_parallel += "\n"
@@ -269,7 +270,7 @@ def get_response_from_plugins(name_space_p, post_type_p, user_state_p, data, sou
         query = f"{result}" + f"\n{message}"
     else:
         # 准备问题（将从插件获取的结果与当前问题拼接成上下文供LLM推理)
-        # query = """请输出：\n你没有权限访问命名空间：%s\n- 不要添加你的任何理解和推理\n- 不要添加任何其它的标点符号和空格\n- 不要添加""和''""" % name_space_p
+        # query = """不管用户的问题是什么，都请输出：\n你没有权限访问命名空间：%s\n- 不要添加你的任何理解和推理\n- 不要添加任何其它的标点符号和空格\n- 不要添加""和''""" % name_space_p
         query = message
     # 输出结果
     print("=" * 50)
@@ -449,6 +450,11 @@ def message_action(data):
     #****************** 参数收集完毕 *************************
     
     
+    
+    # 加载插件，获取插件返回结果、执行插件函数
+    plugin_query = get_response_from_plugins(name_space, message_info["post_type"], [user_state], message_info, source_id)
+    
+
     
     response_message_url = ""
     response_message_file = ""
@@ -737,13 +743,15 @@ def message_action(data):
 
                 # 和 LLM 对话
                 else:
-                    # 加载插件、拼合请求
-                    query = get_response_from_plugins(name_space, message_info["post_type"], user_state, message_info, source_id)
+                    query = plugin_query + message_info["message"]
                     
                     # 当状态为命令等待
                     if user_state == "命令等待":
                         update_custom_command(message_info["message"], source_id, user_id, user_state, chat_type, group_id, at, message_info) # 更新自定义命令
                         response_message_chat = ""
+                    
+                    
+                    
                     
                     # 当状态为知识库问答
                     elif user_state == "知识库问答":
@@ -753,7 +761,7 @@ def message_action(data):
                             print(f"{user_state}:加载 {embedding_db_path} 的向量知识库...")
                             retriever = load_retriever(embedding_db_path, embedding)
                             # 准备问题
-                            query = message_info["message"]
+                            # query = message_info["message"]
                             # 执行问答
                             response_message_chat = asyncio.run(run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, user_state, name_space))
 
@@ -770,7 +778,7 @@ def message_action(data):
                         print(f"加载 {embedding_db_path_site} 的向量知识库...")
                         retriever = load_retriever(embedding_db_path_site, embedding)
                         # 准备问题
-                        query = message_info["message"]
+                        # query = message_info["message"]
                         # 执行问答
                         response_message_chat = asyncio.run(run_chain(bot_nick_name, user_nick_name, retriever, source_id, query, user_state, name_space))       
 
@@ -792,8 +800,26 @@ def message_action(data):
 
                     # 聊天。
                     else:
-                        query = f'{message_info["message"]}'
-                        response_message_chat = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space))
+                        # query = f'{message_info["message"]}'
+                        if source_id in ["8689938408@chatroom", "18398053926@chatroom"]:
+                            template_string = '''你是一个出租车调度员，你的话语温柔亲切，从群里的对话中分析出供求关系。\n
+- 当用户的消息中包含了“车找人”关键字时，表示他是出租车司机，他正在寻求找乘客。
+- 当用户的消息中包含了“人找车”关键字时，表示他是乘客，他正在找车。
+- 当用户的消息中包含了“找车”关键字时，表示他是乘客，他正在找车。
+- 当用户的消息中包含了“找人”关键字时，表示他是出租车司机，他正在寻找乘客。
+- 请注意消息中的起点和终点，以及行经路线如果字符中有类似“——”、“→”，左边是起点，右边是终点。
+- 请注意消息中的车辆预计出发时间：
+      如果消息中指定了出发时间，请按最近时间推荐；
+      如果消息中没有提到出发时间，请按消息发布的先后推荐，即最近发布消息的司机被优先推荐。
+- 请注意消息中的司机提到他的车还有多少空位。
+- 请注意消息中的联系方式。
+- 请注意消息中司机提到是否可以顺带物件。
+- 如果用户的消息与拼车无关，就用你所道的其它知识回答。
+请根据这些要点，给他们匹配最优的方案,如果有匹配方案，只能输出最优的一个。
+'''
+                        else:
+                             template_string = ""
+                        response_message_chat = asyncio.run(chat_generic_langchain(bot_nick_name, user_nick_name, source_id, query, user_state, name_space, template_string))
 
     # 发送消息
     if response_message_url is None:
@@ -810,7 +836,7 @@ def message_action(data):
     response_message = response_message_url + response_message_file + response_message_chat
     
     # 插入聊天请求记录
-    do_chat_history(data["data"][0]["StrContent"], source_id, user_nick_name, data["data"][0]["StrContent"], user_state, name_space)
+    asyncio.run(do_chat_history(data["data"][0]["StrContent"], source_id, user_nick_name, data["data"][0]["StrContent"], user_state, name_space))
     
     if response_message == "" or response_message is None:
         print("=" * 50, "\n",f"没有回复、无需发送消息")
@@ -822,7 +848,7 @@ def message_action(data):
                 response_message_insert = "@" + user_nick_name + " " + response_message
             else:
                 response_message_insert = response_message
-            do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space)
+            asyncio.run(do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space))
             # 发送消息
             asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
         except Exception as e:
