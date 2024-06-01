@@ -49,6 +49,7 @@ MOONSHOT_API_KEY = "your MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里�
 GROQ_API_KEY = "your GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
 # cohere 重排模型 API KEY
 COHERE_API_KEY = "your COHERE_API_KEY" # 申请地址：https://dashboard.cohere.com/api-keys
+QIANFAN_AK = "your QIANFAN_AK" # 千帆API
 
 
 
@@ -56,8 +57,8 @@ COHERE_API_KEY = "your COHERE_API_KEY" # 申请地址：https://dashboard.cohere
 # ******************** 模型配置 ****************************
 # 本地量化模型
 embedding_ollama_conf = { 
-    "base_url": "http://192.168.66.24:11434", 
-    "model": "mofanke/dmeta-embedding-zh" # nomic-embed-text | mofanke/dmeta-embedding-zh
+    "base_url": "http://127.0.0.1:11434", 
+    "model": "nomic-embed-text" # nomic-embed-text | mofanke/dmeta-embedding-zh
 }
 # goole量化模型
 embedding_google_conf = { 
@@ -94,6 +95,11 @@ llm_groq_conf = {
     "model_name": "mixtral-8x7b-32768", # llama3-70b-8192 | mixtral-8x7b-32768
     "temperature": 0.3
 } 
+# 线上 百度 语言模型
+llm_qianfan_conf = { 
+    "model_name": "ERNIE-Lite-8K-0922", 
+    "treaming": False
+} 
 # 本地 chatGLM3-6b
 llm_chatGLM_conf = {
     "endpoint_url": "http://192.168.66.26:8000/v1/chat/completions",
@@ -102,14 +108,15 @@ llm_chatGLM_conf = {
 }
 
 
+
 # ******************** 模型选择 ****************************
 model_choice = {
     # 本地向量模型
     "embedding":"ollama", # embedding: ollama | google
     # 本地知识库模型
-    "llm_rag": "groq", # llm: ollama | gemini | tongyi | chatglm | kimi | groq 
+    "llm_rag": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq | qianfa
     # 聊天模型
-    "llm": "groq", # llm: ollama | gemini | tongyi | chatglm | kimi | groq
+    "llm": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq | qianfa
 }
 
 
@@ -118,7 +125,7 @@ must_use_llm_rag = 0 # 1 | 0 # 当文档较大时，建议设置为1。因为在
 
 
 # 是否使用重排向量模型
-must_rerank_embedding = 1 # 0 | 1 
+must_rerank_embedding = 0 # 0 | 1 
 
 
 
