@@ -43,12 +43,12 @@ db_path = "./chroma_db"
 
 
 # ******************** 线上模型api key ******************** 
-GOOGLE_API_KEY = "AIzaSyBgKE09ReHYbG2lqC_YmdsbEjF8yQGWraa" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
-DASHSCOPE_API_KEY  = "sk-7d48078fa897417c9cfa5cfa70d95faa" # 通义千问 api key
-MOONSHOT_API_KEY = "sk-iIiYG1GyHKH66c0Rag0PTH3UQzF20wZT14Pr0nOD6AX35Faa" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
-GROQ_API_KEY = "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" # GROQ API KEY 在这里申请: https://console.groq.com/keys
+GOOGLE_API_KEY = "GOOGLE_API_KEY" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
+DASHSCOPE_API_KEY  = "DASHSCOPE_API_KEY" # 通义千问 api key
+MOONSHOT_API_KEY = "MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
+GROQ_API_KEY = "GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
 # cohere 重排模型 API KEY
-COHERE_API_KEY = "Yoi17bzia38fkaid7mhAVqDFh6Lv9c7BTkNkngzaa" # 申请地址：https://dashboard.cohere.com/api-keys
+COHERE_API_KEY = "COHERE_API_KEY" # 申请地址：https://dashboard.cohere.com/api-keys
 
 
 
@@ -106,7 +106,7 @@ llm_chatGLM_conf = {
 # ******************** 模型选择 ****************************
 model_choice = {
     # 本地向量模型
-    "embedding":"google", # embedding: ollama | google
+    "embedding":"ollama", # embedding: ollama | google
     # 本地知识库模型
     "llm_rag": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq 
     # 聊天模型
@@ -119,7 +119,7 @@ must_use_llm_rag = 0 # 1 | 0 # 当文档较大时，建议设置为1。因为在
 
 
 # 是否使用重排向量模型
-must_rerank_embedding = 1 # 0 | 1 
+must_rerank_embedding = 0 # 0 | 1 
 
 
 
