@@ -40,13 +40,13 @@ source_id = ""
 # - 两种模式会最终在主程序中调用拼合，一并交给LLM推理。
 # - 主函数中名必须与@装饰函数名一致。
 
-# *** 插件问答是很消耗 Token 的
+# *** 插件是很消耗 Token 的
 
 
 
 
 # 主函数
-def fun_add(name_space, function_type, post_type, user_state, priority, role=[], block=False):
+def fun_add(name_space, function_type, post_type, user_state:list, priority, role=[], block=False):
     def decorator(func):
         func._name_space = name_space
         func._function_type = function_type
@@ -62,7 +62,7 @@ def fun_add(name_space, function_type, post_type, user_state, priority, role=[],
 msg = 0
 
 # 子函数示例1
-@fun_add(name_space="元龙居士", function_type="serial", post_type="message", user_state="插件问答", priority=0, role=["222302526","415135222"])
+@fun_add(name_space="元龙居士", function_type="serial", post_type="message", user_state=["聊天"], priority=0, role=["21122263971@chatroom","cbf_415135222"])
 def fun_add_1(data={}): # 第一个函数的参数必须为字典类型
     
     # 第一个子函数中获取全局变量，并将全局变量中保存数据，因为如果在本插件中调用LLM时用到
@@ -86,14 +86,14 @@ def fun_add_1(data={}): # 第一个函数的参数必须为字典类型
     return msg
 
 # 子函数示例2
-@fun_add(name_space="元龙居士", function_type="serial", post_type="message", user_state="插件问答", priority=1, role=["222302526","415135222"])
+@fun_add(name_space="元龙居士", function_type="serial", post_type="message", user_state=["聊天"], priority=1, role=["21122263971@chatroom","cbf_415135222"])
 def fun_add_2(data):
     global msg
     msg += 1
     return msg
 
 # 子函数示例3
-@fun_add(name_space="元龙居士", function_type="serial", post_type="message", user_state="插件问答", priority=2, role=["222302526","415135222"], block=True)
+@fun_add(name_space="元龙居士", function_type="serial", post_type="message", user_state=["聊天"], priority=2, role=["21122263971@chatroom","cbf_415135222"], block=True)
 def fun_add_3(data):
     global msg
     msg += 1

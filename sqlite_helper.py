@@ -451,10 +451,11 @@ def fetch_chat_history(source_id, user_state, name_space):
         conn = get_database_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT user, content FROM history_now WHERE source_id = ? and user_state = ? and name_space = ? ORDER BY timestamp", (source_id, user_state, name_space))
+            cursor.execute("SELECT user, content, timestamp as time FROM history_now WHERE source_id = ? and user_state = ? and name_space = ? ORDER BY timestamp", (source_id, user_state, name_space))
             return cursor.fetchall()
         except:
             return []
+        
 # 获得自定义命令内容
 def get_custom_command_name(command_name):
     with db_lock:

@@ -2,7 +2,7 @@ import threading
 import time
 import websocket
 import json
-import pyautogui
+# import pyautogui
 from config import ws_url, model_choice, must_use_llm_rag
 from dal import *
 from sqlite_helper import init_commands_table, init_models_table
@@ -16,16 +16,16 @@ llm = model_choice["llm"]
 llm_rag = model_choice["llm_rag"]
 init_models_table(embedding, llm, llm_rag, must_use_llm_rag)
 
-def press_enter_every_2_seconds():
-    try:
-        while True:
-            # 模拟按下回车键
-            pyautogui.press('enter')
-            # print("enter")
-            # 等待2秒
-            time.sleep(2)
-    except KeyboardInterrupt:
-        print("程序已停止")
+# def press_enter_every_2_seconds():
+#     try:
+#         while True:
+#             # 模拟按下回车键
+#             pyautogui.press('enter')
+#             # print("enter")
+#             # 等待2秒
+#             time.sleep(2)
+#     except KeyboardInterrupt:
+#         print("程序已停止")
 
 def on_message(ws, message):
     data = json.loads(message)
@@ -33,8 +33,11 @@ def on_message(ws, message):
 
 def handle_message(data):
     print("\n", "=" * 20, "Message", "=" * 20)
-    print(data)
-    if "😊" not in data["data"][0]["StrContent"]:
+    # print(data)
+    formatted_json = json.dumps(data, indent=4, ensure_ascii=False)
+    print(formatted_json)
+    
+    if "😊" not in data["data"][0]["StrContent"] and "大家有什么需求，可以群里聊，我一定回答" not in data["data"][0]["StrContent"]:
         threading.Thread(target=message_action, args=(data,)).start()
 
 def on_error(ws, error):
@@ -59,5 +62,5 @@ def create_connection():
 # 启动 WebSocket 连接
 create_connection()
 
-# 启动按下回车键的线程
-threading.Thread(target=press_enter_every_2_seconds).start()
+# # 启动按下回车键的线程
+# threading.Thread(target=press_enter_every_2_seconds).start()

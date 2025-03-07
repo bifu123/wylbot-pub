@@ -1,8 +1,8 @@
 # ********************** 通用配置 *********************** 
 # 管理员微信ID
-admin_wxid = "cbf_415135222"
+admin_wxid = "" 
 # 微信接收文件保存路径
-file_receive_path = rf"D:\Documents\WeChat Files"  # PC微信：设置-文件管理 中查看
+file_receive_path = rf"C:\Users\Administrator\Documents\WeChat Files"  # PC微信：设置-文件管理 中查看 # C:\Users\Administrator\Documents\WeChat Files\wxid_3bu3rzmrmszz22
 # 允许的聊天回复
 chat_type_allow = [
     "private",    # 私聊回复
@@ -43,13 +43,12 @@ db_path = "./chroma_db"
 
 
 # ******************** 线上模型api key ******************** 
-GOOGLE_API_KEY = "your GOOGLE_API_KEY" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
-DASHSCOPE_API_KEY  = "your DASHSCOPE_API_KEY" # 通义千问 api key
-MOONSHOT_API_KEY = "your MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
-GROQ_API_KEY = "your GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
+GOOGLE_API_KEY = "AIzaSyBgKE09ReHYbG2lqC_YmdsbEjF8yQGWraa" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
+DASHSCOPE_API_KEY  = "sk-7d48078fa897417c9cfa5cfa70d95faa" # 通义千问 api key
+MOONSHOT_API_KEY = "sk-iIiYG1GyHKH66c0Rag0PTH3UQzF20wZT14Pr0nOD6AX35Faa" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
+GROQ_API_KEY = "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" # GROQ API KEY 在这里申请: https://console.groq.com/keys
 # cohere 重排模型 API KEY
-COHERE_API_KEY = "your COHERE_API_KEY" # 申请地址：https://dashboard.cohere.com/api-keys
-QIANFAN_AK = "your QIANFAN_AK" # 千帆API
+COHERE_API_KEY = "Yoi17bzia38fkaid7mhAVqDFh6Lv9c7BTkNkngzaa" # 申请地址：https://dashboard.cohere.com/api-keys
 
 
 
@@ -57,7 +56,8 @@ QIANFAN_AK = "your QIANFAN_AK" # 千帆API
 # ******************** 模型配置 ****************************
 # 本地量化模型
 embedding_ollama_conf = { 
-    "base_url": "http://127.0.0.1:11434", 
+    # "base_url": "http://192.168.66.24:11434", 
+    "base_url": "http://8.153.36.164:11434", 
     "model": "nomic-embed-text" # nomic-embed-text | mofanke/dmeta-embedding-zh
 }
 # goole量化模型
@@ -95,11 +95,6 @@ llm_groq_conf = {
     "model_name": "mixtral-8x7b-32768", # llama3-70b-8192 | mixtral-8x7b-32768
     "temperature": 0.3
 } 
-# 线上 百度 语言模型
-llm_qianfan_conf = { 
-    "model_name": "ERNIE-Lite-8K-0922", 
-    "treaming": False
-} 
 # 本地 chatGLM3-6b
 llm_chatGLM_conf = {
     "endpoint_url": "http://192.168.66.26:8000/v1/chat/completions",
@@ -108,15 +103,14 @@ llm_chatGLM_conf = {
 }
 
 
-
 # ******************** 模型选择 ****************************
 model_choice = {
     # 本地向量模型
-    "embedding":"ollama", # embedding: ollama | google
+    "embedding":"google", # embedding: ollama | google
     # 本地知识库模型
-    "llm_rag": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq | qianfa
+    "llm_rag": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq 
     # 聊天模型
-    "llm": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq | qianfa
+    "llm": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq
 }
 
 
@@ -125,7 +119,7 @@ must_use_llm_rag = 0 # 1 | 0 # 当文档较大时，建议设置为1。因为在
 
 
 # 是否使用重排向量模型
-must_rerank_embedding = 0 # 0 | 1 
+must_rerank_embedding = 1 # 0 | 1 
 
 
 

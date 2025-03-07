@@ -23,6 +23,7 @@ from models_load import *
 from send import *
 from sqlite_helper import *
 from dal import get_user_state_from_db
+from do_history import save_chat_history
 
 
 # 异步函数
@@ -213,7 +214,7 @@ def get_loads_from_dir(new_embedding_db_path):
     print("正在加载" + new_embedding_db_path + "下的所有文档...")
     loader = DirectoryLoader(new_embedding_db_path, show_progress=True, use_multithreading=True)
     loaders = loader.load()
-    print(loaders)
+    # print(loaders)
     return loaders
 
 
@@ -294,4 +295,6 @@ else:
     response_message_insert = response_message
 user_state = get_user_state_from_db(user_id, source_id)
 name_space = get_user_name_space(user_id, source_id)
-do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space)
+# do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space)
+
+asyncio.run(save_chat_history(source_id, bot_nick_name, response_message_insert, user_state, name_space))

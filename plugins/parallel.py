@@ -40,11 +40,11 @@ source_id = ""
 # - 两种模式会最终在主程序中调用拼合，一并交给LLM推理。
 # - 主函数中名必须与@装饰函数名一致。
 
-# *** 聊天是很消耗 Token 的
+# *** 插件是很消耗 Token 的
 
 
 ################# 主函数 ##################
-def fun_my_plugin(name_space, function_type, post_type, user_state, priority, role=[], block=False):
+def fun_my_plugin(name_space, function_type, post_type, user_state:list, priority, role=[], block=False):
     def decorator(func):
         func._name_space = name_space
         func._function_type = function_type
@@ -62,7 +62,7 @@ def fun_my_plugin(name_space, function_type, post_type, user_state, priority, ro
 
 ################# 子函数 ##################
 # 插件函数示例1
-@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state="聊天", priority=3, role=["222302526","415135222"])
+@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state=["聊天"], priority=3, role=["21122263971@chatroom","cbf_415135222"])
 def fun_1(data):
     
     global bot_nick_name
@@ -84,19 +84,19 @@ def fun_1(data):
     return msg
 
 # 插件函数示例2
-@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state="聊天", priority=4, role=["222302526","415135222"])
+@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state=["聊天"], priority=4, role=["21122263971@chatroom","cbf_415135222"])
 def fun_2(data):
     msg = f"元龙居士是一个养猪的人、他喜欢国学文化、创办了元龙山寨"
     return msg
 
 # 插件函数示例3
-@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state="聊天", priority=5, role=["222302526","415135222"])
+@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state=["聊天"], priority=5, role=["21122263971@chatroom","cbf_415135222"])
 def fun_3(data):
     msg = f"他居住的地方海拔1800米"
     return msg
 
 # 插件函数示例4
-@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state="聊天", priority=6, role=["222302526","415135222"], block=True)
+@fun_my_plugin(name_space="元龙居士", function_type="parallel", post_type="message", user_state=["聊天"], priority=6, role=["21122263971@chatroom","cbf_415135222"], block=True)
 def fun_4(data):
     msg = f"他的头发是白的"
     return msg

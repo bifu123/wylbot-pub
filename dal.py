@@ -1,3 +1,4 @@
+
 # 从内置模块导入
 import os
 import shutil
@@ -18,7 +19,7 @@ import stat
 from models_load import *
 from send import *
 from commands import *
-
+from do_history import save_chat_history
 
 
 
@@ -515,7 +516,10 @@ def message_action(data):
                 response_message_file = ""   
         else: # 如果文件扩展不在允许的列表、只删除文件并作提示
             # 删除文件
-            while True:
+            max_retries = 10
+            retry_count = 0
+
+            while retry_count < max_retries:
                 try:
                     current_permissions = os.stat(source_path).st_mode # 获取文件的当前权限    
                     new_permissions = current_permissions | stat.S_IWRITE # 取消只读属性   
@@ -524,14 +528,19 @@ def message_action(data):
                     print(f"{user_state}删除文件成功")
                     # 提示
                     extensions_string = ", ".join(allowed_extensions) # 允许的文件类型
-                    response_message_file = f"你上传的文件我不会保存，我能为你保存的文件类型：{extensions_string}😊" 
+                    # response_message_file = f"你上传的文件我不会保存，我能为你保存的文件类型：{extensions_string}[玫瑰]" 
+                    response_message_file = ""
                     break
                 except Exception as e:
                     print(e)
                     print(f"{user_state}删除文件失败，重试中")
                     if "文件名、目录名或卷标语法不正确" in str(e):
                         break
-                    time.sleep(1) 
+                    time.sleep(2)
+                    retry_count += 1
+
+            if retry_count == max_retries:
+                print("达到最大重试次数，无法删除文件。")
  
     # 在允许回复的聊天类型中处理
     if message_info["chat_type"] in chat_type_allow and message_info["is_url"][0] == "no": 
@@ -801,21 +810,14 @@ def message_action(data):
                     # 聊天。
                     else:
                         # query = f'{message_info["message"]}'
-                        if source_id in ["8689938408@chatroom", "18398053926@chatroom"]:
-                            template_string = '''你是一个出租车调度员，你的话语温柔亲切，从群里的对话中分析出供求关系。\n
-- 当用户的消息中包含了“车找人”关键字时，表示他是出租车司机，他正在寻求找乘客。
-- 当用户的消息中包含了“人找车”关键字时，表示他是乘客，他正在找车。
-- 当用户的消息中包含了“找车”关键字时，表示他是乘客，他正在找车。
-- 当用户的消息中包含了“找人”关键字时，表示他是出租车司机，他正在寻找乘客。
-- 请注意消息中的起点和终点，以及行经路线如果字符中有类似“——”、“→”，左边是起点，右边是终点。
-- 请注意消息中的车辆预计出发时间：
-      如果消息中指定了出发时间，请按最近时间推荐；
-      如果消息中没有提到出发时间，请按消息发布的先后推荐，即最近发布消息的司机被优先推荐。
-- 请注意消息中的司机提到他的车还有多少空位。
-- 请注意消息中的联系方式。
-- 请注意消息中司机提到是否可以顺带物件。
-- 如果用户的消息与拼车无关，就用你所道的其它知识回答。
-请根据这些要点，给他们匹配最优的方案,如果有匹配方案，只能输出最优的一个。
+                        if source_id in ["8689938408@chatroom", "18398053926@chatroom", "19298879148@chatroom", "2302821758@chatroom","25608060771@chatroom"]: 
+                            template_string = '''你是一个出租车消息发布业务员，你负责帮助车主和乘客把他们的需求发布到这个微信群里。\n
+- 当用户提出的问题和拼车有关时，请建议它去找群里的调度员小美，小美是你的同事，她负责调度。
+- 你可以提醒用户，他们是可以直接在本群里发布拼车供需消息的。
+- 如果他们要发布拼车供需消息，请注意提醒可以参考其它群友的消息格式。
+- 当用用户发布了重复的拼车供需消息时，不要指责他们，这是允许的，他们希望这样让需求方注意。
+- 你要注意告诉用户如果需要帮助发布需求消息，可以邀请你加入他们所在的其它拼车群，你帮他们把消息传达到这个群里，一定要告诉他们这是你最主要的工作。
+- 当用户提出的问题和拼车无关时，请尽量用你的其它知识回答。
 '''
                         else:
                              template_string = ""
@@ -836,9 +838,10 @@ def message_action(data):
     response_message = response_message_url + response_message_file + response_message_chat
     
     # 插入聊天请求记录
-    asyncio.run(do_chat_history(data["data"][0]["StrContent"], source_id, user_nick_name, data["data"][0]["StrContent"], user_state, name_space))
+    asyncio.run(save_chat_history(source_id, user_nick_name, data["data"][0]["StrContent"], user_state, name_space))
+
     
-    if response_message == "" or response_message is None:
+    if response_message == "" or response_message is None or "嗯，你们聊" in response_message:
         print("=" * 50, "\n",f"没有回复、无需发送消息")
     else:
         print("=" * 50, "\n",f"答案：{response_message}") 
@@ -848,7 +851,7 @@ def message_action(data):
                 response_message_insert = "@" + user_nick_name + " " + response_message
             else:
                 response_message_insert = response_message
-            asyncio.run(do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space))
+            asyncio.run(save_chat_history(source_id, bot_nick_name, response_message_insert, user_state, name_space))
             # 发送消息
             asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
         except Exception as e:
@@ -859,5 +862,4 @@ def message_action(data):
             
     
         
-
 
