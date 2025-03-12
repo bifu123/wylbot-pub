@@ -16,7 +16,8 @@ from langchain_community.document_loaders import SeleniumURLLoader # 多URL列�
 
 from langchain.indexes.vectorstore import VectorstoreIndexCreator
 from langchain.text_splitter import RecursiveCharacterTextSplitter # 分割文档
-from langchain_community.vectorstores import Chroma # 量化文档数据库
+# from langchain_community.vectorstores import Chroma # 量化文档数据库
+from langchain_chroma import Chroma # 更新：量化文档数据库导入方式 pip install -U langchain_chroma
 
 # 从文件导入
 from models_load import *
@@ -204,11 +205,13 @@ def parse_sitemap(xml_file):
         urls.append(loc)
     print(f"解析完毕：{url}")
     return urls
+
 # 加载站点地图的函数
 def get_loaders_from_sitemap(urls):
     documents = SeleniumURLLoader(urls)
     loaders = documents.load()
     return loaders
+
 # 加载文档的函数
 def get_loads_from_dir(new_embedding_db_path):
     print("正在加载" + new_embedding_db_path + "下的所有文档...")
@@ -218,6 +221,7 @@ def get_loads_from_dir(new_embedding_db_path):
     return loaders
 
 
+# try:
 
 ####################### 执行过程
 # 删除旧向量存储文件夹
@@ -282,11 +286,10 @@ Chroma.from_documents(
 
 # 构建消息内容
 response_message = f"量化执行结束，已迁移至新知识库：{new_embedding_db_path}😊"
+print(response_message)
 
 # 发送消息
 asyncio.run(answer_action(chat_type, user_id, group_id, at, response_message))
-
-
 
 # 插入记录
 if chat_type == "group_at":
@@ -295,6 +298,7 @@ else:
     response_message_insert = response_message
 user_state = get_user_state_from_db(user_id, source_id)
 name_space = get_user_name_space(user_id, source_id)
-# do_chat_history(response_message_insert, source_id, bot_nick_name, response_message_insert, user_state, name_space)
-
 asyncio.run(save_chat_history(source_id, bot_nick_name, response_message_insert, user_state, name_space))
+
+
+

@@ -1,6 +1,6 @@
 # ********************** 通用配置 *********************** 
 # 管理员微信ID
-admin_wxid = "" 
+admin_wxid = "cbf_415135222"
 # 微信接收文件保存路径
 file_receive_path = rf"C:\Users\Administrator\Documents\WeChat Files"  # PC微信：设置-文件管理 中查看 # C:\Users\Administrator\Documents\WeChat Files\wxid_3bu3rzmrmszz22
 # 允许的聊天回复
@@ -42,13 +42,13 @@ db_path = "./chroma_db"
 
 
 
-# ******************** 线上模型api key ******************** 
-GOOGLE_API_KEY = "GOOGLE_API_KEY" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
-DASHSCOPE_API_KEY  = "DASHSCOPE_API_KEY" # 通义千问 api key
-MOONSHOT_API_KEY = "MOONSHOT_API_KEY" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
-GROQ_API_KEY = "GROQ_API_KEY" # GROQ API KEY 在这里申请: https://console.groq.com/keys
-# cohere 重排模型 API KEY
-COHERE_API_KEY = "COHERE_API_KEY" # 申请地址：https://dashboard.cohere.com/api-keys
+# # ******************** 线上模型api key ******************** 
+# GOOGLE_API_KEY = "AIzaSyBgKE09ReHYbG2lqC_YmdsbEjF8yQGWrGM" #gemini api key的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
+# DASHSCOPE_API_KEY  = "sk-7d48078fa897417c9cfa5cfa70d95f9a" # 通义千问 api key
+# MOONSHOT_API_KEY = "sk-iIiYG1GyHKH66c0Rag0PTH3UQzF20wZT14Pr0nOD6AX35FJk" # moonshot ai kimi api key 在这里申请: https://platform.moonshot.cn/console/api-keys
+# GROQ_API_KEY = "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" # GROQ API KEY 在这里申请: https://console.groq.com/keys
+# # cohere 重排模型 API KEY
+# COHERE_API_KEY = "Yoi17bzia38fkaid7mhAVqDFh6Lv9c7BTkNkngz3" # 申请地址：https://dashboard.cohere.com/api-keys
 
 
 
@@ -56,8 +56,8 @@ COHERE_API_KEY = "COHERE_API_KEY" # 申请地址：https://dashboard.cohere.com/
 # ******************** 模型配置 ****************************
 # 本地量化模型
 embedding_ollama_conf = { 
-    # "base_url": "http://192.168.66.24:11434", 
-    "base_url": "http://8.153.36.164:11434", 
+    "base_url": "http://192.168.66.24:11434", 
+    # "base_url": "http://8.153.36.164:11434", 
     "model": "nomic-embed-text" # nomic-embed-text | mofanke/dmeta-embedding-zh
 }
 # goole量化模型
@@ -70,9 +70,11 @@ llm_gemini_conf = {
     "temperature": 0.7
 } 
 # 本地语言模型 
-llm_ollama_conf = { 
-    "base_url": "http://192.168.66.26:11434",  
-    "model": "llama3:latest" # qwen:7b | llama3:latest | cwchang/llama3-taide-lx-8b-chat-alpha1:latest
+llm_ollama_conf = {
+    "base_url": "http://192.168.66.26:11434", 
+    "model": "llama3:latest", # qwen2:7b | llama3:latest | llama3-chinese:8b | deepseek-r1
+    "temperature": 0.8,
+    "num_predict": 256
 }
 # 线上google gemini语言模型
 llm_gemini_conf = { 
@@ -95,6 +97,15 @@ llm_groq_conf = {
     "model_name": "mixtral-8x7b-32768", # llama3-70b-8192 | mixtral-8x7b-32768
     "temperature": 0.3
 } 
+## 线上 groq api 语言模型
+llm_deepseek_conf = {
+    "model": "deepseek-chat",
+    "temperature": 0,
+    "max_tokens": None,
+    "timeout": None,
+    "max_retries": 2
+} 
+
 # 本地 chatGLM3-6b
 llm_chatGLM_conf = {
     "endpoint_url": "http://192.168.66.26:8000/v1/chat/completions",
@@ -108,9 +119,9 @@ model_choice = {
     # 本地向量模型
     "embedding":"ollama", # embedding: ollama | google
     # 本地知识库模型
-    "llm_rag": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq 
+    "llm_rag": "groq", # llm: ollama | gemini | tongyi | chatglm | kimi | groq 
     # 聊天模型
-    "llm": "tongyi", # llm: ollama | gemini | tongyi | chatglm | kimi | groq
+    "llm": "groq", # llm: ollama | gemini | tongyi | chatglm | kimi | groq
 }
 
 

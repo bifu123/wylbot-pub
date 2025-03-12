@@ -27,7 +27,9 @@ from do_history import save_chat_history
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredWordDocumentLoader, UnstructuredHTMLLoader, UnstructuredMarkdownLoader, PythonLoader 
 from langchain.indexes.vectorstore import VectorstoreIndexCreator
 from langchain.text_splitter import RecursiveCharacterTextSplitter # 分割文档
-from langchain_community.vectorstores import Chroma # 量化文档数据库
+# from langchain_community.vectorstores import Chroma # 量化文档数据库
+# 更新
+from langchain_chroma import Chroma
 
 
 # 链结构
@@ -638,7 +640,12 @@ def message_action(data):
                         # 判断操作系统类型
                         if sys.platform.startswith('win'):
                             # Windows 上的命令
+                            # 执行完自动关闭
                             command = f"start cmd /c \"conda activate wylbot && python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {bot_nick_name} {user_nick_name} && exit\""
+
+                            # 执行完不会自动关闭
+                            # command = f"start cmd /k \"conda activate wylbot && python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {bot_nick_name} {user_nick_name}\""
+
                         elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
                             # Linux 或 macOS 上的命令
                             command = f"gnome-terminal -- bash -c 'python new_embedding.py {embedding_data_path} {embedding_db_path} {source_id} {chat_type} {user_id} {group_id} {at} {embedding_type} {bot_nick_name} {user_nick_name}; exit'"   
@@ -677,33 +684,33 @@ def message_action(data):
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "文档问答")
-                    response_message_chat = "你己切换到 【文档问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/知识库问答\n插件问答😊"
+                    response_message_chat = "你己切换到 【文档问答】 状态。其它状态命令：\n/聊天\n/知识库问答😊"
                 
-                # 命令： /网站问答 
-                elif command_name == "/网站问答":
-                    # 切换到 文档问答 状态
-                    # 用数据库保存每个用户的状态
-                    switch_user_state(user_id, source_id, "网站问答")
-                    response_message_chat = "你己切换到 【网站问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/知识库问答\n插件问答😊" 
+                # # 命令： /网站问答 
+                # elif command_name == "/网站问答":
+                #     # 切换到 文档问答 状态
+                #     # 用数据库保存每个用户的状态
+                #     switch_user_state(user_id, source_id, "网站问答")
+                #     response_message_chat = "你己切换到 【网站问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/知识库问答\n插件问答😊" 
 
                 # 命令： /知识库问答 
                 elif command_name == "/知识库问答":
                     # 切换到 文档问答 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "知识库问答")
-                    response_message_chat = "你己切换到 【知识库问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/网站问答\n/插件问答😊"   
+                    response_message_chat = "你己切换到 【知识库问答】 状态。其它状态命令：\n/聊天\n/文档问答😊"   
 
                 # 命令： /聊天 
                 elif command_name == "/聊天":
                     # 切换到 聊天 状态
                     # 用数据库保存每个用户的状态
                     switch_user_state(user_id, source_id, "聊天")
-                    response_message_chat = "你己切换到 【聊天】 状态。其它状态命令：\n/网站问答\n/文档问答\n/知识库问答\n/插件问答😊" 
+                    response_message_chat = "你己切换到 【聊天】 状态。其它状态命令：\n/文档问答\n/知识库问答😊" 
 
-                # 命令： /插件问答
-                elif command_name == "/插件问答":
-                    switch_user_state(user_id, source_id, "插件问答")
-                    response_message_chat = "你己切换到 【插件问答】 状态。其它状态命令：\n/聊天\n/网站问答\n/文档问答\n/知识库问答😊" 
+                # # 命令： /插件问答
+                # elif command_name == "/插件问答":
+                #     switch_user_state(user_id, source_id, "插件问答")
+                #     response_message_chat = "你己切换到 【插件问答】 状态。其它状态命令：\n/聊天\n/文档问答\n/知识库问答😊" 
 
                 # 命令： /我的状态 
                 elif command_name == "/我的状态":
@@ -742,6 +749,10 @@ def message_action(data):
                         response_message_chat = "消息已经清空😊"
                     except Exception as e:
                         response_message_chat = f"消息清空失败：{e}😊"
+
+                # 命令： /help 
+                elif command_name == "/帮助":
+                    response_message_chat = f"请查看：https://github.com/bifu123/wylbot-pub😊"
                 
                 # 命令： /{自定义命令}
                 elif command_name in custom_commands_list[0]:
