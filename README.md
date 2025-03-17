@@ -10,13 +10,32 @@ wylot是一个以微信聊天界面作为语言模型与用户交互端的RAG应
 ## 怎样使用
 ### 登陆微信
 详见：https://github.com/jwping/wxbot
+### 创建环境变量
+当前目录下新建文件.env，内容如下：
+```
+# deepseek api key 
+DEEPSEEK_API_KEY = "你的 deepseek api key" # 申请地址：https://platform.deepseek.com/
+# gemini api key 
+GOOGLE_API_KEY = "你的 gemini api key" # gemini api key 的申请地址：https://makersuite.google.com/app/prompts/new_freeform ，条件：拥有google帐号
+# 通义千问 api key
+DASHSCOPE_API_KEY  = "你的 DASHSCOPE_API_KEY"
+# moonshot ai kimi api key
+MOONSHOT_API_KEY = "你的 moonshot ai kimi api key" # 在这里申请: https://platform.moonshot.cn/console/api-keys
+# groq
+GROQ_API_KEY = "你的 groq api key" # 在这里申请: https://console.groq.com/keys
+# cohere 重排模型 API KEY
+COHERE_API_KEY = "你的 cohere api key" # 申请地址：https://dashboard.cohere.com/api-keys
+```
+以上的KEY的并不全部都必须，使用哪个模型就填写哪个KEY
+
+此外，还需要安装chrome和firefox
 ### 安装环境
 - windows可以使用conda环境安装部署，linux不建议用
 ```bash
-conda create -n wylbot-pub python=3.11
-git clone https://github.com/bifu123/wylbot-pub
-cd wylbot-pub
-conda activate wylbot-pub
+conda create -n wylbot python=3.11
+git clone https://github.com/bifu123/wylbot
+cd wylbot
+conda activate wylbot
 pip install requirements.txt
 ```
 ### 修改配置文件config.py
