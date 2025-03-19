@@ -34,7 +34,7 @@ COHERE_API_KEY = "你的 cohere api key" # 申请地址：https://dashboard.cohe
 - windows可以使用conda环境安装部署，linux不建议用
 ```bash
 conda create -n wylbot python=3.11
-git clone https://github.com/bifu123/wylbot
+git clone https://github.com/bifu123/wylbot-pub
 cd wylbot
 conda activate wylbot
 pip install requirements.txt
